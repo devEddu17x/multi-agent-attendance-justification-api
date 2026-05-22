@@ -119,7 +119,7 @@ export class TeachersService {
     }
   }
 
-  async delete(id: string) {
+  async deleteById(id: string) {
     try {
       const teacher = await this.getById(id);
       return await this.teacherRepository.remove(teacher);
