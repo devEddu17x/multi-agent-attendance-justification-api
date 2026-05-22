@@ -1,0 +1,12 @@
+services:
+  app_db:
+    image: 'postgres:16-alpine'
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_USER: '${DB_USERNAME:-app_user}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-app_password}'
+      POSTGRES_DB: '${DB_NAME:-app_db}'
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    restart: 'no'
