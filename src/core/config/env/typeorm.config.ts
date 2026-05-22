@@ -1,0 +1,47 @@
+import { registerAs } from '@nestjs/config';
+import { StudentEntity } from 'src/modules/students/entities/student.entity';
+
+export default registerAs('typeorm', () => {
+  const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_SSL } =
+    process.env;
+
+  const missingVars = [
+    ['DB_HOST', DB_HOST],
+    ['DB_PORT', DB_PORT],
+    ['DB_USERNAME', DB_USERNAME],
+    ['DB_NAME', DB_NAME],
+  ]
+    .filter(
+      ([, value]) => typeof value !== 'string' || value.trim().length === 0,
+    )
+    .map(([name]) => name);
+
+  if (missingVars.length) {
+    throw new Error(
+      `Missing required database env vars: ${missingVars.join(', ')}`,
+    );
+  }
+
+  if (!DB_PORT || isNaN(Number(DB_PORT))) {
+    throw new Error(`DB_PORT must be a valid number, got: ${DB_PORT}`);
+  }
+
+  return {
+    type: 'postgres',
+    host: DB_HOST,
+    port: DB_PORT,
+    username: DB_USERNAME,
+    password: DB_PASSWORD,
+    database: DB_NAME,
+    entities: [StudentEntity],
+    synchronize: process.env.NODE_ENV !== 'production',
+    ssl:
+      DB_SSL === 'true'
+        ? {
+            require: true,
+            rejectUnauthorized: false,
+          }
+        : false,
+    uuidExtension: 'pgcrypto',
+  };
+});
