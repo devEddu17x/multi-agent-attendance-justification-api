@@ -1,5 +1,8 @@
 import { registerAs } from '@nestjs/config';
-import { StudentEntity } from 'src/modules/students/entities/student.entity';
+import { ClassroomEntity } from 'src/modules/classroom/entities/classroom.entity';
+import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { TeacherEntity } from 'src/modules/teachers/entities/teacher.entity';
+import { ParentEntity } from 'src/modules/parents/entities/parent.entity';
 
 export default registerAs('typeorm', () => {
   const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_SSL } =
@@ -33,7 +36,7 @@ export default registerAs('typeorm', () => {
     username: DB_USERNAME,
     password: DB_PASSWORD,
     database: DB_NAME,
-    entities: [StudentEntity],
+    entities: [UserEntity, TeacherEntity, ParentEntity, ClassroomEntity],
     synchronize: process.env.NODE_ENV !== 'production',
     ssl:
       DB_SSL === 'true'
