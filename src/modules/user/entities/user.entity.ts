@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { TeacherEntity } from '../../teachers/entities/teacher.entity';
+import { ParentEntity } from '../../parents/entities/parent.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -20,4 +21,7 @@ export class UserEntity {
 
   @OneToOne(() => TeacherEntity, (teacher) => teacher.user)
   teacher: TeacherEntity;
+
+  @OneToOne(() => ParentEntity, (parent) => parent.user)
+  parent: ParentEntity;
 }
