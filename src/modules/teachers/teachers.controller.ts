@@ -1,4 +1,12 @@
-import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { TeachersService } from './teachers.service';
 import { UpdateTeacherDTO } from './dto/update-teacher.dto';
 
@@ -12,20 +20,20 @@ export class TeachersController {
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
+  getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.teachersService.getById(id);
   }
 
   @Patch(':id')
   updateById(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateTeacherDto: UpdateTeacherDTO,
   ) {
     return this.teachersService.updateById(id, updateTeacherDto);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.teachersService.delete(id);
+  delete(@Param('id', ParseUUIDPipe) id: string) {
+    return this.teachersService.deleteById(id);
   }
 }
