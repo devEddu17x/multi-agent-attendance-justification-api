@@ -6,14 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ScheduleEntity } from './entities/schedule.entity';
-import { ClassroomCourseTeacherEntity } from './entities/classroom-course-teacher.entity';
-import { AcademicYearEntity } from './entities/academic-year.entity';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { ScheduleEntity } from '../entities/schedule.entity';
+import { ClassroomCourseTeacherEntity } from '../entities/classroom-course-teacher.entity';
+import { AcademicYearEntity } from '../entities/academic-year.entity';
+import { CreateScheduleDto } from '../dto/create-schedule.dto';
 
 @Injectable()
-export class AcademicClassesService {
-  private readonly logger = new Logger(AcademicClassesService.name);
+export class ScheduleService {
+  private readonly logger = new Logger(ScheduleService.name);
 
   constructor(
     @InjectRepository(ScheduleEntity)
