@@ -23,8 +23,8 @@ export class ClassroomService {
     try {
       const entity = this.repository.create(dto);
       return await this.repository.save(entity);
-    } catch {
-      this.logger.error('Failed to create classroom');
+    } catch (error) {
+      this.logger.error('Failed to create classroom', error);
       throw new InternalServerErrorException('Could not create classroom');
     }
   }
@@ -32,8 +32,8 @@ export class ClassroomService {
   async getAll(): Promise<ClassroomEntity[]> {
     try {
       return await this.repository.find();
-    } catch {
-      this.logger.error('Failed to fetch classrooms');
+    } catch (error) {
+      this.logger.error('Failed to fetch classrooms', error);
       throw new InternalServerErrorException('Could not fetch classrooms');
     }
   }
@@ -45,9 +45,9 @@ export class ClassroomService {
         throw new NotFoundException('Classroom not found');
       }
       return entity;
-    } catch (err) {
-      if (err instanceof NotFoundException) throw err;
-      this.logger.error(`Failed to fetch classroom with id ${id}`);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Failed to fetch classroom with id ${id}`, error);
       throw new InternalServerErrorException('Could not fetch classroom');
     }
   }
@@ -60,9 +60,9 @@ export class ClassroomService {
       const entity = await this.getById(id);
       Object.assign(entity, dto);
       return await this.repository.save(entity);
-    } catch (err) {
-      if (err instanceof NotFoundException) throw err;
-      this.logger.error(`Failed to update classroom with id ${id}`);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Failed to update classroom with id ${id}`, error);
       throw new InternalServerErrorException('Could not update classroom');
     }
   }
@@ -73,9 +73,9 @@ export class ClassroomService {
       if (result.affected === 0) {
         throw new NotFoundException('Classroom not found');
       }
-    } catch (err) {
-      if (err instanceof NotFoundException) throw err;
-      this.logger.error(`Failed to delete classroom with id ${id}`);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Failed to delete classroom with id ${id}`, error);
       throw new InternalServerErrorException('Could not delete classroom');
     }
   }
