@@ -8,6 +8,7 @@ import { TeacherCourseEntity } from 'src/modules/teachers/entities/teacher-cours
 import { AcademicYearEntity } from 'src/modules/academic-classes/entities/academic-year.entity';
 import { ClassroomCourseTeacherEntity } from 'src/modules/academic-classes/entities/classroom-course-teacher.entity';
 import { ScheduleEntity } from 'src/modules/academic-classes/entities/schedule.entity';
+import { StudentEntity } from 'src/modules/students/entities/student.entity';
 
 export default registerAs('typeorm', () => {
   const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_SSL } =
@@ -51,6 +52,7 @@ export default registerAs('typeorm', () => {
       AcademicYearEntity,
       ClassroomCourseTeacherEntity,
       ScheduleEntity,
+      StudentEntity,
     ],
     synchronize: process.env.NODE_ENV !== 'production',
     ssl:
