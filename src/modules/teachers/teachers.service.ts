@@ -39,6 +39,7 @@ export class TeachersService {
       const teachers = await this.teacherRepository.find({
         relations: {
           user: true,
+          courses: true,
         },
       });
       return teachers;
@@ -56,6 +57,7 @@ export class TeachersService {
         where: { id },
         relations: {
           user: true,
+          courses: true,
         },
       });
 
