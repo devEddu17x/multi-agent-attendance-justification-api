@@ -7,6 +7,7 @@ import { ParentModule } from './modules/parents/parent.module';
 import { ClassroomModule } from './modules/classroom/classroom.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { AcademicClassesModule } from './modules/academic-classes/academic-classes.module';
+import { StudentsModule } from './modules/students/students.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AcademicClassesModule } from './modules/academic-classes/academic-class
     ClassroomModule,
     CoursesModule,
     AcademicClassesModule,
+    StudentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
