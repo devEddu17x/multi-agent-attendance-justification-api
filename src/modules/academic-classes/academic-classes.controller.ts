@@ -6,20 +6,35 @@ import {
   Param,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { AcademicClassesService } from './academic-classes.service';
+import { ScheduleService } from './services/schedule.service';
+import { EnrollmentService } from './services/enrollment.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { CreateEnrollmentDTO } from './dto/create-enrollment.dto';
 
-@Controller('schedule')
+@Controller()
 export class AcademicClassesController {
-  constructor(private readonly service: AcademicClassesService) {}
+  constructor(
+    private readonly scheduleService: ScheduleService,
+    private readonly enrollmentService: EnrollmentService,
+  ) {}
 
-  @Post()
-  create(@Body() dto: CreateScheduleDto) {
-    return this.service.create(dto);
+  @Post('schedule')
+  createSchedule(@Body() dto: CreateScheduleDto) {
+    return this.scheduleService.create(dto);
   }
 
-  @Delete(':id')
-  deleteById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.deleteById(id);
+  @Delete('schedule/:id')
+  deleteScheduleById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.scheduleService.deleteById(id);
+  }
+
+  @Post('enrollment')
+  createEnrollment(@Body() dto: CreateEnrollmentDTO) {
+    return this.enrollmentService.create(dto);
+  }
+
+  @Delete('enrollment/:id')
+  deleteEnrollmentById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.enrollmentService.deleteById(id);
   }
 }
