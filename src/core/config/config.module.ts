@@ -15,7 +15,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         '.env.production.local',
       ],
       isGlobal: true,
-      load: [config.typeormConfig],
+      load: [config.typeormConfig, config.cognitoConfig],
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
