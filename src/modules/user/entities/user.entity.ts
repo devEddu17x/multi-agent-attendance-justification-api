@@ -19,6 +19,9 @@ export class UserEntity {
   })
   email: string;
 
+  @Column({ name: 'is_admin', type: 'boolean', default: false })
+  isAdmin: boolean;
+
   @OneToOne(() => TeacherEntity, (teacher) => teacher.user)
   teacher: TeacherEntity;
 
