@@ -4,11 +4,10 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   OneToOne,
-  ManyToMany,
-  JoinTable,
+  OneToMany,
 } from 'typeorm';
 import { UserEntity } from '../../user/entities/user.entity';
-import { CourseEntity } from '../../courses/entities/course.entity';
+import { TeacherCourseEntity } from './teacher-course.entity';
 
 @Entity('teachers')
 export class TeacherEntity {
@@ -31,11 +30,6 @@ export class TeacherEntity {
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 
-  @ManyToMany(() => CourseEntity, (course) => course.teachers)
-  @JoinTable({
-    name: 'teacher_courses',
-    joinColumn: { name: 'teacher_id' },
-    inverseJoinColumn: { name: 'course_id' },
-  })
-  courses: CourseEntity[];
+  @OneToMany(() => TeacherCourseEntity, (tct) => tct.teacher)
+  teacherCourses: TeacherCourseEntity[];
 }

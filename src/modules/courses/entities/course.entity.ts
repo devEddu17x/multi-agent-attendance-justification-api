@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
-import { TeacherEntity } from '../../teachers/entities/teacher.entity';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { TeacherCourseEntity } from '../../teachers/entities/teacher-course.entity';
 
 @Entity('courses')
 export class CourseEntity {
@@ -12,6 +12,6 @@ export class CourseEntity {
   @Column({ type: 'varchar', unique: true, length: 100 })
   code: string;
 
-  @ManyToMany(() => TeacherEntity, (teacher) => teacher.courses)
-  teachers: TeacherEntity[];
+  @OneToMany(() => TeacherCourseEntity, (tct) => tct.course)
+  teacherCourses: TeacherCourseEntity[];
 }
