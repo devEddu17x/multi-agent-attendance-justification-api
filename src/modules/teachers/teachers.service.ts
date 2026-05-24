@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateTeacherDTO } from './dto/update-teacher.dto';
 import { TeacherEntity } from './entities/teacher.entity';
-import { CreateTeacherDTO } from './dto/create-teacher.dto';
+import { CreateTeacherDTO } from '../../common/dtos/create-teacher.dto';
 import { UserService } from '../user/user.service';
 import { UpdateUserDTO } from '../user/dto/update-user.dto';
 
@@ -39,7 +39,7 @@ export class TeachersService {
       const teachers = await this.teacherRepository.find({
         relations: {
           user: true,
-          courses: true,
+          teacherCourses: true,
         },
       });
       return teachers;
@@ -57,7 +57,7 @@ export class TeachersService {
         where: { id },
         relations: {
           user: true,
-          courses: true,
+          teacherCourses: true,
         },
       });
 

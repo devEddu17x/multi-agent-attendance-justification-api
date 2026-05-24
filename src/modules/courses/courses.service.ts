@@ -83,14 +83,14 @@ export class CoursesService {
     try {
       const course = await this.repository.findOne({
         where: { id },
-        relations: { teachers: true },
+        relations: { teacherCourses: true },
       });
 
       if (!course) {
         throw new NotFoundException('Course not found');
       }
 
-      if (course.teachers && course.teachers.length > 0) {
+      if (course.teacherCourses && course.teacherCourses.length > 0) {
         throw new ConflictException(
           'Cannot delete course with existing teacher assignments',
         );
