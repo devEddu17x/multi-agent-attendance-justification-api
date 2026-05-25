@@ -4,9 +4,16 @@ import {
   IsUUID,
   Matches,
   IsStrongPassword,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer/types/decorators/type.decorator';
+import { CreateUserDTO } from 'src/modules/user/dto/create-user.dto';
 
 export class CreateParentDto {
+  @ValidateNested()
+  @Type(() => CreateUserDTO)
+  user: CreateUserDTO;
+
   @IsString()
   @IsNotEmpty()
   @Matches(/^\d{8}$/, {
