@@ -10,5 +10,6 @@ import { UserModule } from '../user/user.module';
   imports: [UserModule, TypeOrmModule.forFeature([UserEntity, ParentEntity])],
   controllers: [ParentController],
   providers: [ParentService],
+  exports: [ParentService],
 })
 export class ParentModule {}
