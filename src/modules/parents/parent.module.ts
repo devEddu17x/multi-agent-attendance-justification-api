@@ -4,11 +4,11 @@ import { ParentService } from './parent.service';
 import { ParentController } from './parent.controller';
 import { ParentEntity } from './entities/parent.entity';
 import { UserEntity } from '../user/entities/user.entity';
-import { UserService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, ParentEntity])],
+  imports: [UserModule, TypeOrmModule.forFeature([UserEntity, ParentEntity])],
   controllers: [ParentController],
-  providers: [UserService, ParentService],
+  providers: [ParentService],
 })
 export class ParentModule {}
