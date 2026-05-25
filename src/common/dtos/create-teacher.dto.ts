@@ -1,14 +1,19 @@
 import {
-  IsBoolean,
   IsNotEmpty,
-  IsOptional,
   IsString,
   IsUUID,
   Matches,
   IsStrongPassword,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateUserDTO } from 'src/modules/user/dto/create-user.dto';
 
 export class CreateTeacherDTO {
+  @ValidateNested()
+  @Type(() => CreateUserDTO)
+  user: CreateUserDTO;
+
   @IsString()
   @IsNotEmpty()
   documentType: string;
@@ -26,10 +31,6 @@ export class CreateTeacherDTO {
     message: 'The field phone must have exactly 9 digits and start with 9',
   })
   phone: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
 
   @IsString()
   @IsNotEmpty()
