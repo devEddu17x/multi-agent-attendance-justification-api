@@ -5,17 +5,24 @@ import {
 } from '@nestjs/config';
 import * as config from './env';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const paths: Record<string, string> = {
+  local: '.env.local',
+  seed: '.env.seed',
+  development: '.env.development',
+  test: '.env.test',
+  production: '.env.production',
+};
+const envFilePath = paths[NODE_ENV] || paths.development;
+
 @Global()
 @Module({
   imports: [
     NestConfigModule.forRoot({
-      envFilePath: [
-        '.env.local',
-        '.env.development.local',
-        '.env.production.local',
-      ],
+      envFilePath,
       isGlobal: true,
-      load: [config.typeormConfig, config.cognitoConfig],
+      load: [config.typeormConfig, config.cognitoConfig, config.apiConfig],
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
