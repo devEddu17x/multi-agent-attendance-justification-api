@@ -9,10 +9,13 @@ import { CoursesModule } from './modules/courses/courses.module';
 import { AcademicClassesModule } from './modules/academic-classes/academic-classes.module';
 import { StudentsModule } from './modules/students/students.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
     ConfigModule,
+    UserModule,
     TeachersModule,
     ParentModule,
     ClassroomModule,
@@ -20,6 +23,7 @@ import { AuthModule } from './modules/auth/auth.module';
     AcademicClassesModule,
     StudentsModule,
     AuthModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
