@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateParentDto } from './dto/create-parent.dto';
+import { CreateParentDto } from '../../common/dtos/create-parent.dto';
 import { UpdateParentDto } from './dto/update-parent.dto';
 import { ParentEntity } from './entities/parent.entity';
 import { UserService } from '../user/user.service';
