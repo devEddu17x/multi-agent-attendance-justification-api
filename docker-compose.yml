@@ -2,7 +2,7 @@ services:
   app_db:
     image: 'postgres:16-alpine'
     env_file:
-      - .env.local
+      - .env.development
     environment:
       POSTGRES_USER: '${DB_USERNAME:-app_user}'
       POSTGRES_PASSWORD: '${DB_PASSWORD:-app_password}'
