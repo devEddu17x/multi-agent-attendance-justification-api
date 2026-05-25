@@ -16,10 +16,6 @@ export class CreateTeacherDTO {
 
   @IsString()
   @IsNotEmpty()
-  documentType: string;
-
-  @IsString()
-  @IsNotEmpty()
   @Matches(/^\d{8}$/, {
     message: 'The field documentNumber must contain exactly 8 digits',
   })
