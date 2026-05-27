@@ -10,7 +10,7 @@ import { CognitoService } from '../auth/services/cognito.service';
 import { maskEmail } from 'src/utils/mask-email.util';
 import { CognitoUserParams } from '../auth/interfaces/cognito-user.interface';
 import { UserService } from '../user/user.service';
-import { CreateParentDto } from '../../common/dtos/create-parent.dto';
+import { CreateParentDTO } from '../../common/dtos/create-parent.dto';
 import { ParentService } from '../parents/parent.service';
 
 @Injectable()
@@ -32,10 +32,7 @@ export class AdministrationService {
       };
       const cognitoUser = await this.cognitoService.signUpUser(params);
       const appUser = await this.userService.createUser(dto.user);
-      const teacher = await this.teachersService.create({
-        ...dto,
-        userId: appUser.id,
-      });
+      const teacher = await this.teachersService.create(dto, appUser.id);
       return { teacher, cognitoUser };
     } catch (error) {
       if (error instanceof ConflictException) throw error;
@@ -49,7 +46,7 @@ export class AdministrationService {
     }
   }
 
-  async createParent(dto: CreateParentDto) {
+  async createParent(dto: CreateParentDTO) {
     try {
       const params: CognitoUserParams = {
         email: dto.user.email,
@@ -59,10 +56,7 @@ export class AdministrationService {
       };
       const cognitoUser = await this.cognitoService.signUpUser(params);
       const appUser = await this.userService.createUser(dto.user);
-      const teacher = await this.parentService.create({
-        ...dto,
-        userId: appUser.id,
-      });
+      const teacher = await this.parentService.create(dto, appUser.id);
       return { teacher, cognitoUser };
     } catch (error) {
       if (error instanceof ConflictException) throw error;
