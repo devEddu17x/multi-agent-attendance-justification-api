@@ -22,9 +22,12 @@ export class TeachersService {
     private readonly userService: UserService,
   ) {}
 
-  async create(createTeacherDto: CreateTeacherDTO) {
+  async create(createTeacherDto: CreateTeacherDTO, userId: string) {
     try {
-      const newTeacher = this.teacherRepository.create(createTeacherDto);
+      const newTeacher = this.teacherRepository.create({
+        ...createTeacherDto,
+        user: { id: userId },
+      });
       return await this.teacherRepository.save(newTeacher);
     } catch (error) {
       this.logger.error('Failed to create teacher', error);

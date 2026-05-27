@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateParentDto } from '../../common/dtos/create-parent.dto';
+import { CreateParentDTO } from '../../common/dtos/create-parent.dto';
 import { UpdateParentDto } from './dto/update-parent.dto';
 import { ParentEntity } from './entities/parent.entity';
 import { UserService } from '../user/user.service';
@@ -22,9 +22,12 @@ export class ParentService {
     private readonly userService: UserService,
   ) {}
 
-  async create(createParentDto: CreateParentDto) {
+  async create(createParentDto: CreateParentDTO, userId: string) {
     try {
-      const newParent = this.parentRepository.create(createParentDto);
+      const newParent = this.parentRepository.create({
+        ...createParentDto,
+        user: { id: userId },
+      });
       return await this.parentRepository.save(newParent);
     } catch (error) {
       this.logger.error('Failed to create parent', error);
