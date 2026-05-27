@@ -4,13 +4,15 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { ConfigService } from '@nestjs/config';
-import { CognitoIdentityProvider } from '@aws-sdk/client-cognito-identity-provider';
-import { ROLES } from 'src/common/enums/roles.enum';
-import { parentDto, teacherDto } from './dto/create-teacher.dto';
+import { getRandomCreateParentDTO } from './factories/parent-random.dto';
+import { getRandomCreateTeacherDTO } from './factories/teacher-random.dto';
+import { getAdminToken } from './helpers/admin-token.helper';
+import { decodeJWT } from './helpers/decode-jwt.helper';
 
 describe('Admin Controller (e2e)', () => {
   let app: INestApplication<App>;
-
+  let adminToken: string;
+  let baseUrl: string;
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -27,93 +29,60 @@ describe('Admin Controller (e2e)', () => {
 
     const apiConfig = app.get(ConfigService).get('api');
     app.setGlobalPrefix(`${apiConfig.prefix}/v${apiConfig.version}`);
+    baseUrl = `/${apiConfig.prefix}/v${apiConfig.version}`;
     await app.init();
+    adminToken = await getAdminToken(app);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
+  describe('Admin Token Paylod', () => {
+    it('should contain admin in the groups claim', () => {
+      const payload = decodeJWT(adminToken);
+      expect(payload['cognito:groups']).toContain('admin');
+    });
+  });
+
   describe('/administration/teacher (POST)', () => {
     it('should failed from a non-admin user', async () => {
+      const dto = getRandomCreateTeacherDTO();
       await request(app.getHttpServer())
-        .post('/api/v1/administration/teacher')
-        .send(teacherDto)
+        .post(`${baseUrl}/administration/teacher`)
+        .send(dto)
         .expect(401);
     });
   });
 
   describe('/administration/parent (POST)', () => {
     it('should failed from a non-admin user', async () => {
+      const dto = getRandomCreateParentDTO();
       await request(app.getHttpServer())
-        .post('/api/v1/administration/parent')
-        .send(teacherDto)
+        .post(`${baseUrl}/administration/parent`)
+        .send(dto)
         .expect(401);
     });
   });
 
   describe('/administration/teacher (POST)', () => {
     it('should create a new teacher from an admin user', async () => {
-      const { region, clientId } = app.get(ConfigService).get('cognito');
-      const cognitoClient = new CognitoIdentityProvider({ region });
-      const response = await cognitoClient.initiateAuth({
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        ClientId: clientId,
-        AuthParameters: {
-          USERNAME: process.env.BASE_ADMIN_EMAIL!,
-          PASSWORD: process.env.BASE_ADMIN_PASSWORD!,
-        },
-      });
-
-      const adminToken = response.AuthenticationResult?.IdToken;
-
-      const payload = JSON.parse(
-        Buffer.from(
-          adminToken!.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'),
-          'base64',
-        ).toString('utf8'),
-      );
-      const groups: string[] = payload['cognito:groups'] || [];
-
-      expect(groups).toContain(ROLES.ADMIN);
-
+      const dto = getRandomCreateTeacherDTO();
       await request(app.getHttpServer())
-        .post('/api/v1/administration/teacher')
+        .post(`${baseUrl}/administration/teacher`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send(teacherDto)
+        .send(dto)
         .expect(201);
     });
   });
 
   describe('/administration/parent (POST)', () => {
     it('should create a new parent from an admin user', async () => {
-      const { region, clientId } = app.get(ConfigService).get('cognito');
-      const cognitoClient = new CognitoIdentityProvider({ region });
-      const response = await cognitoClient.initiateAuth({
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        ClientId: clientId,
-        AuthParameters: {
-          USERNAME: process.env.BASE_ADMIN_EMAIL!,
-          PASSWORD: process.env.BASE_ADMIN_PASSWORD!,
-        },
-      });
-
-      const adminToken = response.AuthenticationResult?.IdToken;
-
-      const payload = JSON.parse(
-        Buffer.from(
-          adminToken!.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'),
-          'base64',
-        ).toString('utf8'),
-      );
-      const groups: string[] = payload['cognito:groups'] || [];
-
-      expect(groups).toContain(ROLES.ADMIN);
-
+      const dto = getRandomCreateParentDTO();
       await request(app.getHttpServer())
-        .post('/api/v1/administration/parent')
+        .post(`${baseUrl}/administration/parent`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send(parentDto)
+        .send(dto)
         .expect(201);
     });
   });
