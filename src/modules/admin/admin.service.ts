@@ -12,6 +12,7 @@ import { CognitoUserParams } from '../auth/interfaces/cognito-user.interface';
 import { UserService } from '../user/user.service';
 import { CreateParentDTO } from '../../common/dtos/create-parent.dto';
 import { ParentService } from '../parents/parent.service';
+import { ROLES } from 'src/common/enums/roles.enum';
 
 @Injectable()
 export class AdministrationService {
@@ -31,6 +32,7 @@ export class AdministrationService {
         lastName: dto.user.lastName,
       };
       const cognitoUser = await this.cognitoService.signUpUser(params);
+      await this.cognitoService.addRole(dto.user.email, ROLES.TEACHER);
       const appUser = await this.userService.createUser(dto.user);
       const teacher = await this.teachersService.create(dto, appUser.id);
       return { teacher, cognitoUser };
@@ -55,6 +57,7 @@ export class AdministrationService {
         lastName: dto.user.lastName,
       };
       const cognitoUser = await this.cognitoService.signUpUser(params);
+      await this.cognitoService.addRole(dto.user.email, ROLES.PARENT);
       const appUser = await this.userService.createUser(dto.user);
       const teacher = await this.parentService.create(dto, appUser.id);
       return { teacher, cognitoUser };
