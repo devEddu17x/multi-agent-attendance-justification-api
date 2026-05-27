@@ -1,7 +1,6 @@
 import {
   IsNotEmpty,
   IsString,
-  IsUUID,
   Matches,
   IsStrongPassword,
   ValidateNested,
@@ -44,8 +43,4 @@ export class CreateTeacherDTO {
     },
   )
   password: string;
-
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
 }
