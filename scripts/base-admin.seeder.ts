@@ -2,6 +2,8 @@ import {
   CognitoIdentityProviderClient,
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
+  AdminAddUserToGroup$,
+  AdminAddUserToGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { DataSource } from 'typeorm';
 import { UserEntity } from '../src/modules/user/entities/user.entity';
@@ -9,6 +11,7 @@ import { TeacherEntity } from '../src/modules/teachers/entities/teacher.entity';
 import { ParentEntity } from '../src/modules/parents/entities/parent.entity';
 import { CourseEntity } from '../src/modules/courses/entities/course.entity';
 import { TeacherCourseEntity } from '../src/modules/teachers/entities/teacher-course.entity';
+import { ROLES } from 'src/common/enums/roles.enum';
 
 const requiredEnvVars = [
   'DB_HOST',
@@ -67,7 +70,18 @@ async function createCognitoUser(
         MessageAction: 'SUPPRESS',
       }),
     );
+
     console.log(`[Cognito] User created: ${email}`);
+
+    await client.send(
+      new AdminAddUserToGroupCommand({
+        UserPoolId: userPoolId,
+        Username: email,
+        GroupName: ROLES.ADMIN,
+      }),
+    );
+
+    console.log(`[Cognito] User added to group ${ROLES.ADMIN}: ${email}`);
   } catch (error: any) {
     if (error.name === 'UsernameExistsException') {
       userExisted = true;
