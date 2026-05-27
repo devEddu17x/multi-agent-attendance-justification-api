@@ -1,7 +1,6 @@
 import {
   IsNotEmpty,
   IsString,
-  IsUUID,
   Matches,
   IsStrongPassword,
   ValidateNested,
@@ -9,7 +8,7 @@ import {
 import { Type } from 'class-transformer/types/decorators/type.decorator';
 import { CreateUserDTO } from 'src/modules/user/dto/create-user.dto';
 
-export class CreateParentDto {
+export class CreateParentDTO {
   @ValidateNested()
   @Type(() => CreateUserDTO)
   user: CreateUserDTO;
@@ -44,8 +43,4 @@ export class CreateParentDto {
     },
   )
   password: string;
-
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
 }
