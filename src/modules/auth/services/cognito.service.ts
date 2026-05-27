@@ -32,6 +32,8 @@ export class CognitoService {
   constructor(private readonly configService: ConfigService) {
     const cognitoConfig = configService.get('cognito');
     this.userPoolId = cognitoConfig.userPoolId;
+    this.clientId = cognitoConfig.clientId;
+    this.internalAuthToken = cognitoConfig.internalAuthToken;
     this.cognitoClient = new CognitoIdentityProviderClient({
       region: cognitoConfig.region,
     });
