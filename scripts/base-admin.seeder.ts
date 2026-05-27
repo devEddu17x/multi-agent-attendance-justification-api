@@ -2,7 +2,6 @@ import {
   CognitoIdentityProviderClient,
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
-  AdminAddUserToGroup$,
   AdminAddUserToGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { DataSource } from 'typeorm';
