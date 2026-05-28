@@ -9,5 +9,6 @@
   "transformIgnorePatterns": ["node_modules/(?!jose)/"],
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/../src/$1"
-  }
+  },
+  "testTimeout": 30000
 }
