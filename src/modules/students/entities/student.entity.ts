@@ -28,7 +28,12 @@ export class StudentEntity {
   @Column({ name: 'base_classroom_id', type: 'uuid', nullable: true })
   baseClassroomId: string | null;
 
-  @Column({ name: 'rekognition_id', type: 'uuid', unique: true })
+  @Column({
+    name: 'rekognition_id',
+    type: 'uuid',
+    unique: true,
+    nullable: true,
+  })
   rekognitionId: string;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
