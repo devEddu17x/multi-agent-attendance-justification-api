@@ -31,6 +31,6 @@ export class CreateStudentDTO {
   baseClassroomId?: string;
 
   @IsUUID()
-  @IsNotEmpty()
-  rekognitionId: string;
+  @IsOptional()
+  rekognitionId?: string;
 }
