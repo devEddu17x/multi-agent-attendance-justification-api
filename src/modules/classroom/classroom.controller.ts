@@ -9,7 +9,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
-import { CreateClassroomDto } from './dto/create-classroom.dto';
+import { CreateClassroomDTO } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
 
 @Controller('classroom')
@@ -17,7 +17,7 @@ export class ClassroomController {
   constructor(private readonly service: ClassroomService) {}
 
   @Post()
-  create(@Body() dto: CreateClassroomDto) {
+  create(@Body() dto: CreateClassroomDTO) {
     return this.service.create(dto);
   }
 

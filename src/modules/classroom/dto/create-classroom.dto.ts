@@ -9,7 +9,7 @@ import {
   Min,
 } from 'class-validator';
 
-export class CreateClassroomDto {
+export class CreateClassroomDTO {
   @IsString()
   @IsNotEmpty()
   @MaxLength(64)
