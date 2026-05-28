@@ -13,6 +13,7 @@ import { UpdateStudentParentDTO } from './dto/update-student-parent.dto';
 import { UpdateStudentClassroomDTO } from './dto/update-student-classroom.dto';
 import { UpdateStudentActiveDTO } from './dto/update-student-active.dto';
 import { UpdateStudentRekognitionDTO } from './dto/update-student-rekognition.dto';
+import { maskEmail } from 'src/utils/mask-email.util';
 
 @Injectable()
 export class StudentsService {
@@ -66,6 +67,26 @@ export class StudentsService {
       if (error instanceof NotFoundException) throw error;
       this.logger.error(`Failed to fetch student with id ${id}`, error);
       throw new InternalServerErrorException('Could not fetch student');
+    }
+  }
+
+  async getStudentsByParentEmail(email: string): Promise<StudentEntity[]> {
+    try {
+      return await this.repository.find({
+        where: { parent: { user: { email } } },
+        relations: {
+          parent: true,
+          baseClassroom: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch students for parent with email: ${maskEmail(email)}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        'Could not fetch students for parent',
+      );
     }
   }
 
