@@ -9,6 +9,9 @@ import { AcademicYearEntity } from 'src/modules/academic-classes/entities/academ
 import { ClassroomCourseTeacherEntity } from 'src/modules/academic-classes/entities/classroom-course-teacher.entity';
 import { ScheduleEntity } from 'src/modules/academic-classes/entities/schedule.entity';
 import { StudentEntity } from 'src/modules/students/entities/student.entity';
+import { EnrollmentEntity } from 'src/modules/academic-classes/entities/enrollment.entity';
+import { AttendanceEntity } from 'src/modules/attendance/entities/attendance.entity';
+import { AttendanceJustificationEntity } from 'src/modules/attendance/entities/attendance-justification.entity';
 
 export default registerAs('typeorm', () => {
   const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_SSL } =
@@ -53,6 +56,9 @@ export default registerAs('typeorm', () => {
       ClassroomCourseTeacherEntity,
       ScheduleEntity,
       StudentEntity,
+      EnrollmentEntity,
+      AttendanceEntity,
+      AttendanceJustificationEntity,
     ],
     synchronize: process.env.NODE_ENV !== 'production',
     ssl:
