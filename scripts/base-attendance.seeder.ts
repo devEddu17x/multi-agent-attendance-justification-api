@@ -308,6 +308,11 @@ async function main() {
     ];
 
     for (let i = 0; i < 10; i++) {
+      let tc = new TeacherCourseEntity();
+      tc.teacherId = teachers[i].id;
+      tc.courseId = courses[i].id;
+      await dataSource.getRepository(TeacherCourseEntity).save(tc);
+
       let cct = new ClassroomCourseTeacherEntity();
       cct.academicYearId = academicYear.id;
       cct.classroomId = classroom.id;
