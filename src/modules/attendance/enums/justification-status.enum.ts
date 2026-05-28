@@ -1,0 +1,5 @@
+export enum JustificationStatus {
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  AUTO_APPROVED = 'AUTO_APPROVED',
+  REJECTED = 'REJECTED',
+}
