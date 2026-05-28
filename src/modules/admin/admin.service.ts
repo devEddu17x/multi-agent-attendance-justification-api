@@ -59,8 +59,8 @@ export class AdministrationService {
       const cognitoUser = await this.cognitoService.signUpUser(params);
       await this.cognitoService.addRole(dto.user.email, ROLES.PARENT);
       const appUser = await this.userService.createUser(dto.user);
-      const teacher = await this.parentService.create(dto, appUser.id);
-      return { teacher, cognitoUser };
+      const parent = await this.parentService.create(dto, appUser.id);
+      return { parent, cognitoUser };
     } catch (error) {
       if (error instanceof ConflictException) throw error;
       this.logger.error(
