@@ -11,6 +11,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AttendanceService } from './services/attendance.service';
 import { ImageValidationPipe } from './pipes/image-validation.pipe';
+import {
+  ApiDocRegisterStudentFace,
+  ApiDocRegisterAttendance,
+} from './docs/attendance.doc';
 
 @Controller('attendance')
 export class AttendanceController {
@@ -18,6 +22,7 @@ export class AttendanceController {
 
   @Put(':id/rekognition')
   @UseInterceptors(FileInterceptor('photo'))
+  @ApiDocRegisterStudentFace()
   async updateRekognition(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile(ImageValidationPipe(150)) photo: Express.Multer.File,
@@ -27,6 +32,7 @@ export class AttendanceController {
 
   @Post('schedule')
   @UseInterceptors(FileInterceptor('photo'))
+  @ApiDocRegisterAttendance()
   async registerAttendance(
     @UploadedFile(ImageValidationPipe(50)) photo: Express.Multer.File,
     @Query('time') time?: string,
