@@ -14,7 +14,6 @@ import { CreateStudentDTO } from './dto/create-student.dto';
 import { UpdateStudentParentDTO } from './dto/update-student-parent.dto';
 import { UpdateStudentClassroomDTO } from './dto/update-student-classroom.dto';
 import { UpdateStudentActiveDTO } from './dto/update-student-active.dto';
-import { UpdateStudentRekognitionDTO } from './dto/update-student-rekognition.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -75,15 +74,6 @@ export class StudentsController {
     @Body() dto: UpdateStudentActiveDTO,
   ) {
     return this.service.updateActive(id, dto);
-  }
-
-  @Roles(ROLES.ADMIN, ROLES.TEACHER)
-  @Patch(':id/rekognition')
-  updateRekognition(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateStudentRekognitionDTO,
-  ) {
-    return this.service.updateRekognition(id, dto);
   }
 
   @Roles(ROLES.ADMIN, ROLES.TEACHER)
