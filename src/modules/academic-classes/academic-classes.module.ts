@@ -21,5 +21,6 @@ import { AcademicClassesController } from './academic-classes.controller';
   ],
   controllers: [AcademicClassesController],
   providers: [ScheduleService, EnrollmentService],
+  exports: [ScheduleService],
 })
 export class AcademicClassesModule {}
