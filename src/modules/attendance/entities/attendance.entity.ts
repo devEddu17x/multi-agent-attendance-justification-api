@@ -4,12 +4,14 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { StudentEntity } from '../../students/entities/student.entity';
 import { ScheduleEntity } from '../../academic-classes/entities/schedule.entity';
 import { AttendanceStatus } from '../enums/attendance-status.enum';
 
 @Entity('attendance')
+@Unique(['studentId', 'scheduleId', 'date'])
 export class AttendanceEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
