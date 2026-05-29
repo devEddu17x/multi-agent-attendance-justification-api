@@ -9,17 +9,20 @@ import {
 } from '@nestjs/common';
 import { ParentService } from './parent.service';
 import { UpdateParentDto } from './dto/update-parent.dto';
+import { ApiDocGetAllParents, ApiDocGetParentById } from './docs/parents.doc';
 
 @Controller('parents')
 export class ParentController {
   constructor(private readonly parentService: ParentService) {}
 
   @Get()
+  @ApiDocGetAllParents()
   getAll() {
     return this.parentService.getAll();
   }
 
   @Get(':id')
+  @ApiDocGetParentById()
   getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.parentService.getById(id);
   }
