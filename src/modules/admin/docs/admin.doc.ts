@@ -1,10 +1,24 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 export function ApiDocCreateTeacher() {
-  return applyDecorators(ApiOperation({ summary: 'Create a teacher' }));
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({
+      summary: 'Create a teacher',
+      description:
+        'Creates a new teacher in AWS Cognito and the database. Role: admin only.',
+    }),
+  );
 }
 
 export function ApiDocCreateParent() {
-  return applyDecorators(ApiOperation({ summary: 'Create a parent' }));
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({
+      summary: 'Create a parent',
+      description:
+        'Creates a new parent in AWS Cognito and the database. Role: teacher only.',
+    }),
+  );
 }
