@@ -12,7 +12,6 @@ import { CreateStudentDTO } from './dto/create-student.dto';
 import { UpdateStudentParentDTO } from './dto/update-student-parent.dto';
 import { UpdateStudentClassroomDTO } from './dto/update-student-classroom.dto';
 import { UpdateStudentActiveDTO } from './dto/update-student-active.dto';
-import { UpdateStudentRekognitionDTO } from './dto/update-student-rekognition.dto';
 import { maskEmail } from 'src/utils/mask-email.util';
 
 @Injectable()
@@ -57,7 +56,6 @@ export class StudentsService {
           baseClassroom: true,
         },
       });
-
       if (!entity) {
         throw new NotFoundException('Student not found');
       }
@@ -87,6 +85,27 @@ export class StudentsService {
       throw new InternalServerErrorException(
         'Could not fetch students for parent',
       );
+    }
+  }
+
+  async getByRekognitionId(rekognitionId: string): Promise<StudentEntity> {
+    try {
+      const entity = await this.repository.findOne({
+        where: { rekognitionId },
+      });
+
+      if (!entity) {
+        throw new NotFoundException('Student with the given face not found');
+      }
+
+      return entity;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(
+        `Failed to fetch student with rekognitionId ${rekognitionId}`,
+        error,
+      );
+      throw new InternalServerErrorException('Could not fetch student by face');
     }
   }
 
@@ -150,12 +169,16 @@ export class StudentsService {
 
   async updateRekognition(
     id: string,
-    dto: UpdateStudentRekognitionDTO,
-  ): Promise<StudentEntity> {
+    rekognitionId: string,
+  ): Promise<{ success: boolean }> {
     try {
-      const student = await this.getById(id);
-      student.rekognitionId = dto.rekognitionId;
-      return await this.repository.save(student);
+      const updatedStudent = await this.repository.update(id, {
+        rekognitionId,
+      });
+      if (updatedStudent.affected === 0) {
+        throw new NotFoundException('Student not found');
+      }
+      return { success: true };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       this.logger.error(
