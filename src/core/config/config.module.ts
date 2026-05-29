@@ -22,7 +22,12 @@ const envFilePath = paths[NODE_ENV] || paths.development;
     NestConfigModule.forRoot({
       envFilePath,
       isGlobal: true,
-      load: [config.typeormConfig, config.cognitoConfig, config.apiConfig],
+      load: [
+        config.typeormConfig,
+        config.cognitoConfig,
+        config.apiConfig,
+        config.rekognitionConfig,
+      ],
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
