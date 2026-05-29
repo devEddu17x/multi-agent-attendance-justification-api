@@ -20,6 +20,12 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { ROLES } from 'src/common/enums/roles.enum';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { User } from 'src/common/interfaces/user.interface';
+import {
+  ApiDocCreateStudent,
+  ApiDocGetOwnStudents,
+  ApiDocGetAllStudents,
+  ApiDocGetStudentById,
+} from './docs/students.doc';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('students')
@@ -28,23 +34,27 @@ export class StudentsController {
 
   @Roles(ROLES.ADMIN, ROLES.TEACHER)
   @Post()
+  @ApiDocCreateStudent()
   create(@Body() dto: CreateStudentDTO) {
     return this.service.create(dto);
   }
 
   @Get('own')
+  @ApiDocGetOwnStudents()
   getOwn(@CurrentUser() user: User) {
     return this.service.getStudentsByParentEmail(user.email);
   }
 
   @Roles(ROLES.ADMIN, ROLES.TEACHER)
   @Get()
+  @ApiDocGetAllStudents()
   getAll() {
     return this.service.getAll();
   }
 
   @Roles(ROLES.ADMIN, ROLES.TEACHER)
   @Get(':id')
+  @ApiDocGetStudentById()
   getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.getById(id);
   }
