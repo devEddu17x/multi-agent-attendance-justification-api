@@ -36,6 +36,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, documentFactory, {
     useGlobalPrefix: true,
   });
+  console.log(`API running on port ${apiConfig.port}`);
   await app.listen(apiConfig.port);
 }
 void bootstrap();
