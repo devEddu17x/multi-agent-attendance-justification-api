@@ -26,6 +26,7 @@ async function bootstrap() {
       'API documentation for the Multi Agent Attendance Justification application',
     )
     .setVersion('1.0.0')
+    .addBearerAuth()
     .build();
 
   const documentFactory = () => {
