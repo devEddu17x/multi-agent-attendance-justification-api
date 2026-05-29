@@ -19,7 +19,9 @@ async function bootstrap() {
     .get(ConfigService)
     .get<{ prefix: string; version: string; port: number }>('api')!;
 
-  app.setGlobalPrefix(`${apiConfig.prefix}/v${apiConfig.version}`);
+  app.setGlobalPrefix(`${apiConfig.prefix}/v${apiConfig.version}`, {
+    exclude: ['health'],
+  });
   const config = new DocumentBuilder()
     .setTitle('Multi Agent Attendance Justification API')
     .setDescription(
