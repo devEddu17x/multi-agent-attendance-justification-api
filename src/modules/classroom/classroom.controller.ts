@@ -11,6 +11,10 @@ import {
 import { ClassroomService } from './classroom.service';
 import { CreateClassroomDTO } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import {
+  ApiDocGetAllClassrooms,
+  ApiDocGetClassroomById,
+} from './docs/classroom.doc';
 
 @Controller('classroom')
 export class ClassroomController {
@@ -22,11 +26,13 @@ export class ClassroomController {
   }
 
   @Get()
+  @ApiDocGetAllClassrooms()
   getAll() {
     return this.service.getAll();
   }
 
   @Get(':id')
+  @ApiDocGetClassroomById()
   getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.getById(id);
   }
