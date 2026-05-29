@@ -2,7 +2,6 @@ FROM node:22-alpine AS base
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV PNPM_CONFIG_MINIMUM_RELEASE_AGE=0
 RUN corepack enable
 
 FROM base AS deps
@@ -34,6 +33,6 @@ ENV NODE_ENV=production
 USER nestjs
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD wget -q -O /dev/null "http://127.0.0.1:${API_PORT}" || exit 1
+    CMD wget -q -O /dev/null "http://127.0.0.1:${API_PORT}/health" || exit 1
 
 CMD ["node", "dist/main.js"]
