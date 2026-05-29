@@ -5,11 +5,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { ScheduleEntity } from '../entities/schedule.entity';
 import { ClassroomCourseTeacherEntity } from '../entities/classroom-course-teacher.entity';
 import { AcademicYearEntity } from '../entities/academic-year.entity';
 import { CreateScheduleDto } from '../dto/create-schedule.dto';
+import { formatTimeHHMMSS } from 'src/utils/time.util';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ScheduleService {
@@ -83,5 +84,37 @@ export class ScheduleService {
       this.logger.error(`Failed to delete schedule with id ${id}`, error);
       throw new InternalServerErrorException('Could not delete schedule');
     }
+  }
+
+  async getScheduleForStudent(
+    studentId: string,
+    time: Date,
+  ): Promise<ScheduleEntity | null> {
+    const jsDay = time.getDay();
+    const dayOfWeek = jsDay === 0 ? 7 : jsDay;
+
+    const checkInTimeStr = formatTimeHHMMSS(time);
+    const timePlus30 = new Date(time.getTime() + 30 * 60000);
+    const checkInTimePlus30Str = formatTimeHHMMSS(timePlus30);
+
+    const schedule = await this.scheduleRepository
+      .createQueryBuilder('schedule')
+      .innerJoinAndSelect('schedule.classroomCourseTeacher', 'cct')
+      .innerJoin(
+        'enrollments',
+        'enr',
+        'enr.classroom_course_teacher_id = cct.id',
+      )
+      .where('enr.student_id = :studentId', { studentId })
+      .andWhere('schedule.day_of_week = :dayOfWeek', { dayOfWeek })
+      .andWhere('schedule.start_time <= :checkInTimePlus30', {
+        checkInTimePlus30: checkInTimePlus30Str,
+      })
+      .andWhere('schedule.end_time >= :checkInTime', {
+        checkInTime: checkInTimeStr,
+      })
+      .getOne();
+
+    return schedule;
   }
 }
