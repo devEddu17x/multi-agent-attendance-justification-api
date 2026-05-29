@@ -2,11 +2,12 @@ FROM node:22-alpine AS base
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV PNPM_CONFIG_MINIMUM_RELEASE_AGE=0
 RUN corepack enable
 
 FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --config.verify-deps-before-run=false
+RUN pnpm install --frozen-lockfile
 
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
@@ -15,7 +16,7 @@ RUN pnpm run build
 
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts --config.verify-deps-before-run=false
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 FROM node:22-alpine AS runner
 WORKDIR /app
