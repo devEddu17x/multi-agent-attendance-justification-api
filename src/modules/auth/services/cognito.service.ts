@@ -5,6 +5,7 @@ import {
   AdminEnableUserCommand,
   AdminRemoveUserFromGroupCommand,
   CognitoIdentityProviderClient,
+  InitiateAuthCommand,
   SignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
@@ -14,6 +15,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { maskEmail } from '../../../utils/mask-email.util';
 import { ConfigService } from '@nestjs/config';
@@ -165,6 +167,46 @@ export class CognitoService {
       );
 
       return { success: false, error };
+    }
+  }
+
+  async signIn(email: string, password: string) {
+    try {
+      const command = new InitiateAuthCommand({
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        ClientId: this.clientId,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
+      });
+
+      const response = await this.cognitoClient.send(command);
+
+      if (!response.AuthenticationResult) {
+        throw new UnauthorizedException('Authentication failed');
+      }
+
+      return {
+        accessToken: response.AuthenticationResult.AccessToken,
+        idToken: response.AuthenticationResult.IdToken,
+        refreshToken: response.AuthenticationResult.RefreshToken,
+        expiresIn: response.AuthenticationResult.ExpiresIn,
+        tokenType: response.AuthenticationResult.TokenType,
+      };
+    } catch (error: any) {
+      if (error instanceof UnauthorizedException) throw error;
+      if (
+        error.name === 'NotAuthorizedException' ||
+        error.name === 'UserNotFoundException'
+      ) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+      this.logger.error(
+        { err: error, email: maskEmail(email) },
+        'Failed to sign in',
+      );
+      throw new InternalServerErrorException('Could not sign in');
     }
   }
 }
