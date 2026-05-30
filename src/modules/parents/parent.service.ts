@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateParentDTO } from '../../common/dtos/create-parent.dto';
-import { UpdateParentDto } from './dto/update-parent.dto';
+import { UpdateParentDTO } from './dto/update-parent.dto';
 import { ParentEntity } from './entities/parent.entity';
 import { UserService } from '../user/user.service';
 import { UpdateUserDTO } from '../user/dto/update-user.dto';
@@ -77,7 +77,7 @@ export class ParentService {
     }
   }
 
-  async updateById(id: string, dto: UpdateParentDto) {
+  async updateById(id: string, dto: UpdateParentDTO) {
     try {
       const parent = await this.getById(id);
       const updatePromises: Promise<any>[] = [];

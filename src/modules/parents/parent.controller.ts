@@ -8,7 +8,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ParentService } from './parent.service';
-import { UpdateParentDto } from './dto/update-parent.dto';
+import { UpdateParentDTO } from './dto/update-parent.dto';
 import { ApiDocGetAllParents, ApiDocGetParentById } from './docs/parents.doc';
 
 @Controller('parents')
@@ -30,7 +30,7 @@ export class ParentController {
   @Patch(':id')
   updateById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateParentDto: UpdateParentDto,
+    @Body() updateParentDto: UpdateParentDTO,
   ) {
     return this.parentService.updateById(id, updateParentDto);
   }
