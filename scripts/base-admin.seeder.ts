@@ -3,6 +3,7 @@ import {
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   AdminAddUserToGroupCommand,
+  AdminGetUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { DataSource } from 'typeorm';
 import { UserEntity } from '../src/modules/user/entities/user.entity';
@@ -51,11 +52,12 @@ async function createCognitoUser(
   password: string,
   firstName: string,
   lastName: string,
-) {
+): Promise<string> {
   let userExisted = false;
+  let userSub = '';
 
   try {
-    await client.send(
+    const response = await client.send(
       new AdminCreateUserCommand({
         UserPoolId: userPoolId,
         Username: email,
@@ -69,6 +71,11 @@ async function createCognitoUser(
         MessageAction: 'SUPPRESS',
       }),
     );
+
+    const subAttr = response.User?.Attributes?.find(
+      (attr) => attr.Name === 'sub',
+    );
+    if (subAttr?.Value) userSub = subAttr.Value;
 
     console.log(`[Cognito] User created: ${email}`);
 
@@ -90,7 +97,16 @@ async function createCognitoUser(
     }
   }
 
-  if (!userExisted) {
+  if (userExisted) {
+    const userRes = await client.send(
+      new AdminGetUserCommand({
+        UserPoolId: userPoolId,
+        Username: email,
+      }),
+    );
+    const subAttr = userRes.UserAttributes?.find((attr) => attr.Name === 'sub');
+    if (subAttr?.Value) userSub = subAttr.Value;
+  } else {
     await client.send(
       new AdminSetUserPasswordCommand({
         UserPoolId: userPoolId,
@@ -101,6 +117,8 @@ async function createCognitoUser(
     );
     console.log(`[Cognito] Password set permanently for: ${email}`);
   }
+
+  return userSub;
 }
 
 async function createDatabaseUser(
@@ -108,6 +126,7 @@ async function createDatabaseUser(
   email: string,
   firstName: string,
   lastName: string,
+  cognitoSub: string,
 ) {
   const existing = await dataSource.getRepository(UserEntity).findOne({
     where: { email },
@@ -119,6 +138,7 @@ async function createDatabaseUser(
   }
 
   const user = new UserEntity();
+  if (cognitoSub) user.id = cognitoSub;
   user.email = email;
   user.firstName = firstName;
   user.lastName = lastName;
@@ -158,6 +178,7 @@ async function main() {
     password: DB_PASSWORD,
     database: DB_NAME,
     ssl: DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    synchronize: true,
     entities: [
       UserEntity,
       TeacherEntity,
@@ -171,7 +192,7 @@ async function main() {
     await dataSource.initialize();
     console.log('[Database] Connected');
 
-    await createCognitoUser(
+    const cognitoSub = await createCognitoUser(
       cognitoClient,
       AWS_COGNITO_USER_POOL_ID!,
       BASE_ADMIN_EMAIL!,
@@ -185,6 +206,7 @@ async function main() {
       BASE_ADMIN_EMAIL!,
       BASE_ADMIN_FIRST_NAME!,
       BASE_ADMIN_LAST_NAME!,
+      cognitoSub,
     );
 
     console.log('[Seed] Base admin user provisioning complete');
