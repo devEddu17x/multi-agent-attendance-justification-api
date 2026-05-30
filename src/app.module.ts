@@ -13,6 +13,8 @@ import { AdminModule } from './modules/admin/admin.module';
 import { UserModule } from './modules/user/user.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { QdrantModule } from './modules/qdrant/qdrant.module';
+import { JustifyModule } from './modules/justify/justify.module';
+import { StorageModule } from './modules/storage/storage.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { QdrantModule } from './modules/qdrant/qdrant.module';
     AdminModule,
     AttendanceModule,
     QdrantModule,
+    StorageModule,
+    JustifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
