@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ScheduleEntity } from '../entities/schedule.entity';
 import { ClassroomCourseTeacherEntity } from '../entities/classroom-course-teacher.entity';
 import { AcademicYearEntity } from '../entities/academic-year.entity';
-import { CreateScheduleDto } from '../dto/create-schedule.dto';
+import { CreateScheduleDTO } from '../dto/create-schedule.dto';
 import { formatTimeHHMMSS } from 'src/utils/time.util';
 import { Repository } from 'typeorm';
 
@@ -25,7 +25,7 @@ export class ScheduleService {
     private readonly academicYearRepository: Repository<AcademicYearEntity>,
   ) {}
 
-  async create(dto: CreateScheduleDto): Promise<ScheduleEntity> {
+  async create(dto: CreateScheduleDTO): Promise<ScheduleEntity> {
     try {
       const academicYear = await this.academicYearRepository.findOne({
         order: { year: 'DESC' },

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ScheduleService } from './services/schedule.service';
 import { EnrollmentService } from './services/enrollment.service';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { CreateScheduleDTO } from './dto/create-schedule.dto';
 import { CreateEnrollmentDTO } from './dto/create-enrollment.dto';
 
 @Controller()
@@ -19,7 +19,7 @@ export class AcademicClassesController {
   ) {}
 
   @Post('schedule')
-  createSchedule(@Body() dto: CreateScheduleDto) {
+  createSchedule(@Body() dto: CreateScheduleDTO) {
     return this.scheduleService.create(dto);
   }
 
