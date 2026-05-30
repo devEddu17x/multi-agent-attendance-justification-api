@@ -33,8 +33,11 @@ export class AdministrationService {
       };
       const cognitoUser = await this.cognitoService.signUpUser(params);
       await this.cognitoService.addRole(dto.user.email, ROLES.TEACHER);
-      const appUser = await this.userService.createUser(dto.user);
+
+      const sub = cognitoUser.user.UserSub;
+      const appUser = await this.userService.createUser(dto.user, sub);
       const teacher = await this.teachersService.create(dto, appUser.id);
+
       return { teacher, cognitoUser };
     } catch (error) {
       if (error instanceof ConflictException) throw error;
@@ -58,8 +61,11 @@ export class AdministrationService {
       };
       const cognitoUser = await this.cognitoService.signUpUser(params);
       await this.cognitoService.addRole(dto.user.email, ROLES.PARENT);
-      const appUser = await this.userService.createUser(dto.user);
+
+      const sub = cognitoUser.user.UserSub;
+      const appUser = await this.userService.createUser(dto.user, sub);
       const parent = await this.parentService.create(dto, appUser.id);
+
       return { parent, cognitoUser };
     } catch (error) {
       if (error instanceof ConflictException) throw error;
