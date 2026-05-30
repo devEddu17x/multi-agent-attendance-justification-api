@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClassroomEntity } from './entities/classroom.entity';
 import { CreateClassroomDTO } from './dto/create-classroom.dto';
-import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import { UpdateClassroomDTO } from './dto/update-classroom.dto';
 
 @Injectable()
 export class ClassroomService {
@@ -54,7 +54,7 @@ export class ClassroomService {
 
   async updateById(
     id: string,
-    dto: UpdateClassroomDto,
+    dto: UpdateClassroomDTO,
   ): Promise<ClassroomEntity> {
     try {
       const entity = await this.getById(id);

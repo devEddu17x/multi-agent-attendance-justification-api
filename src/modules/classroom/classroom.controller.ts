@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
 import { CreateClassroomDTO } from './dto/create-classroom.dto';
-import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import { UpdateClassroomDTO } from './dto/update-classroom.dto';
 import {
   ApiDocGetAllClassrooms,
   ApiDocGetClassroomById,
@@ -40,7 +40,7 @@ export class ClassroomController {
   @Patch(':id')
   updateById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateClassroomDto,
+    @Body() dto: UpdateClassroomDTO,
   ) {
     return this.service.updateById(id, dto);
   }
