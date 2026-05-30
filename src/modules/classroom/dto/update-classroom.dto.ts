@@ -1,6 +1,6 @@
 import { IsInt, Min, Max, IsString, IsNotEmpty, IsUUID } from 'class-validator';
 
-export class UpdateClassroomDto {
+export class UpdateClassroomDTO {
   @IsInt()
   @Min(1)
   @Max(64)
