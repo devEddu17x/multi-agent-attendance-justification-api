@@ -10,3 +10,15 @@ services:
     ports:
       - '${DB_PORT:-5432}:5432'
     restart: 'no'
+
+  qdrant_db:
+    image: qdrant/qdrant:v1.18.1
+    env_file:
+      - .env.development
+    environment:
+      - QDRANT__SERVICE__API_KEY
+      - QDRANT_LOG_LEVEL=${QDRANT_LOG_LEVEL:-INFO}
+    ports:
+      - 6333:6333
+      - 6334:6334
+    restart: 'no'
