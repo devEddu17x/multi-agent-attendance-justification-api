@@ -1,6 +1,6 @@
 import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
-export class UpdateParentDto {
+export class UpdateParentDTO {
   @IsString()
   @IsOptional()
   @MaxLength(100)
