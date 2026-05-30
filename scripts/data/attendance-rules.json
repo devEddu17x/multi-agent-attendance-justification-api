@@ -1,0 +1,127 @@
+[
+  {
+    "id": 10,
+    "vector": [],
+    "payload": {
+      "article_id": 10,
+      "article_number": "Art. 10",
+      "title": "Inasistencias por motivos de salud leves y graves",
+      "category": "salud",
+      "full_text": "Art. 10 – Inasistencias por motivos de salud leves y graves. Las inasistencias por enfermedad de un (1) solo día pueden ser justificadas con una nota escrita y firmada por el apoderado a través de la plataforma. Sin embargo, si la inasistencia por salud se prolonga por dos (2) o más días consecutivos, es estrictamente obligatorio adjuntar un certificado médico, receta o constancia de atención firmada por un profesional de la salud colegiado. Sin este documento, los días adicionales se considerarán como faltas injustificadas.",
+      "business_rules": {
+        "single_day_threshold": 1,
+        "single_day_required_doc": "nota_apoderado",
+        "multi_day_required_docs": ["certificado_medico", "receta", "constancia_atencion"],
+        "requires_medical_license": true,
+        "unjustified_consequence": "falta_injustificada",
+        "key_rules_summary": [
+          "1 día de enfermedad requiere únicamente nota firmada por el apoderado mediante la plataforma.",
+          "2 o más días consecutivos exigen obligatoriamente documento firmado por médico colegiado.",
+          "De no presentarse el sustento médico a partir del segundo día, los días extra pasan a ser faltas injustificadas."
+        ]
+      }
+    }
+  },
+  {
+    "id": 11,
+    "vector": [],
+    "payload": {
+      "article_id": 11,
+      "article_number": "Art. 11",
+      "title": "Eventos de fuerza mayor, clima y transporte",
+      "category": "fuerza_mayor",
+      "full_text": "Art. 11 – Eventos de fuerza mayor, clima y transporte. Se justificará la inasistencia o tardanza por eventos de fuerza mayor, tales como desastres naturales (lluvias torrenciales, inundaciones), bloqueos de vías o paros de transporte, siempre y cuando el evento sea de conocimiento público u oficializado por Defensa Civil. Si el evento afecta únicamente a la vivienda del estudiante (ej. aniego local, falla mecánica del vehículo particular), el apoderado debe adjuntar evidencia fotográfica o constancia policial en un plazo no mayor a 24 horas.",
+      "business_rules": {
+        "public_event_types": ["desastre_natural", "lluvia_torrencial", "inundacion", "bloqueo_vias", "paro_transporte"],
+        "public_event_requires_evidence": false,
+        "private_event_types": ["aniego_local", "falla_mecanica", "accidente_domestico"],
+        "private_event_required_docs": ["evidencia_fotografica", "constancia_policial"],
+        "evidence_deadline_hours": 24,
+        "official_source": "Defensa Civil",
+        "key_rules_summary": [
+          "Eventos de conocimiento público no requieren evidencia individual.",
+          "Eventos que afectan únicamente al estudiante requieren foto o constancia policial en 24h.",
+          "La fuente oficial de validación de eventos públicos es Defensa Civil o el reporte de tránsito."
+        ]
+      }
+    }
+  },
+  {
+    "id": 12,
+    "vector": [],
+    "payload": {
+      "article_id": 12,
+      "article_number": "Art. 12",
+      "title": "Licencia por duelo y calamidad doméstica",
+      "category": "duelo",
+      "full_text": "Art. 12 – Licencia por duelo y calamidad doméstica. En caso de fallecimiento de un familiar directo (padres, hermanos, abuelos o tutores legales), el estudiante tiene derecho a una licencia con goce de justificación automática por tres (3) días hábiles consecutivos. Para familiares de segundo grado (tíos, primos), la justificación será de máximo un (1) día. El apoderado deberá regularizar el sustento presentando el acta de defunción correspondiente dentro de los cinco (5) días posteriores al retorno del alumno.",
+      "business_rules": {
+        "first_degree_relatives": ["padres", "hermanos", "abuelos", "tutores_legales"],
+        "first_degree_leave_days": 3,
+        "second_degree_relatives": ["tíos", "primos"],
+        "second_degree_leave_days": 1,
+        "required_document": "acta_defuncion",
+        "regularization_deadline_days": 5,
+        "auto_justified": true,
+        "key_rules_summary": [
+          "Familiar directo (padres, hermanos, abuelos, tutores): 3 días de licencia automática.",
+          "Familiar de segundo grado (tíos, primos): máximo 1 día.",
+          "El acta de defunción debe presentarse en un plazo de 5 días tras el retorno.",
+          "La licencia por duelo es de justificación automática; solo se regulariza el sustento."
+        ]
+      }
+    }
+  },
+  {
+    "id": 13,
+    "vector": [],
+    "payload": {
+      "article_id": 13,
+      "article_number": "Art. 13",
+      "title": "Acumulación de tardanzas y tolerancia de ingreso",
+      "category": "tardanzas",
+      "full_text": "Art. 13 – Acumulación de tardanzas y tolerancia de ingreso. La hora oficial de ingreso es a las 08:00 AM. Se otorga una tolerancia máxima de diez (10) minutos. Pasadas las 08:10 AM, el estudiante ingresará, pero se registrará como tardanza. La acumulación de tres (3) tardanzas injustificadas en un mismo período trimestral se computará automáticamente en el sistema como una (1) inasistencia injustificada para efectos de la calificación actitudinal.",
+      "business_rules": {
+        "official_entry_time": "08:00",
+        "grace_period_minutes": 10,
+        "late_entry_time": "08:10",
+        "late_threshold_count": 3,
+        "late_to_absence_conversion": 1,
+        "evaluation_period": "trimestral",
+        "consequence": "inasistencia_injustificada",
+        "key_rules_summary": [
+          "Tolerancia máxima de 10 minutos después de la hora oficial (08:00).",
+          "A partir de las 08:10 se registra como tardanza.",
+          "3 tardanzas injustificadas en un trimestre equivalen a 1 inasistencia injustificada.",
+          "La conversión afecta la calificación actitudinal del estudiante."
+        ]
+      }
+    }
+  },
+  {
+    "id": 14,
+    "vector": [],
+    "payload": {
+      "article_id": 14,
+      "article_number": "Art. 14",
+      "title": "Representación institucional, deportiva o cultural",
+      "category": "representacion",
+      "full_text": "Art. 14 – Representación institucional, deportiva o cultural. Las inasistencias motivadas por la participación del estudiante en torneos deportivos, concursos académicos o eventos culturales en representación del colegio, de la región o del país, serán plenamente justificadas. Para que esta justificación sea válida, el apoderado debe tramitar el permiso como una Pre-falta con al menos 48 horas de anticipación, adjuntando la carta de convocatoria de la federación, club o institución organizadora.",
+      "business_rules": {
+        "valid_representation_types": ["deportiva", "academica", "cultural"],
+        "representation_levels": ["colegio", "region", "pais"],
+        "requires_pre_approval": true,
+        "pre_approval_type": "pre_falta",
+        "advance_notice_hours": 48,
+        "required_documents": ["carta_convocatoria"],
+        "issuing_authorities": ["federacion", "club", "institucion_organizadora"],
+        "key_rules_summary": [
+          "Inasistencias por representación institucional son plenamente justificadas.",
+          "El permiso debe tramitarse como Pre-falta con al menos 48h de anticipación.",
+          "Se requiere carta de convocatoria de la entidad organizadora.",
+          "Aplica para representación a nivel colegio, regional o nacional."
+        ]
+      }
+    }
+  }
+]
