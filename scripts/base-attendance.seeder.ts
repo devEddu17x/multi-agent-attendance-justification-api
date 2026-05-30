@@ -3,6 +3,7 @@ import {
   AdminCreateUserCommand,
   AdminAddUserToGroupCommand,
   AdminSetUserPasswordCommand,
+  AdminGetUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { DataSource } from 'typeorm';
 import { faker } from '@faker-js/faker';
@@ -69,11 +70,12 @@ async function createCognitoUser(
   firstName: string,
   lastName: string,
   role: ROLES,
-) {
+): Promise<string> {
   let userExisted = false;
+  let userSub = '';
 
   try {
-    await client.send(
+    const response = await client.send(
       new AdminCreateUserCommand({
         UserPoolId: userPoolId,
         Username: email,
@@ -87,6 +89,11 @@ async function createCognitoUser(
         MessageAction: 'SUPPRESS',
       }),
     );
+
+    const subAttr = response.User?.Attributes?.find(
+      (attr) => attr.Name === 'sub',
+    );
+    if (subAttr?.Value) userSub = subAttr.Value;
 
     await client.send(
       new AdminAddUserToGroupCommand({
@@ -103,7 +110,16 @@ async function createCognitoUser(
     }
   }
 
-  if (!userExisted) {
+  if (userExisted) {
+    const userRes = await client.send(
+      new AdminGetUserCommand({
+        UserPoolId: userPoolId,
+        Username: email,
+      }),
+    );
+    const subAttr = userRes.UserAttributes?.find((attr) => attr.Name === 'sub');
+    if (subAttr?.Value) userSub = subAttr.Value;
+  } else {
     await client.send(
       new AdminSetUserPasswordCommand({
         UserPoolId: userPoolId,
@@ -113,6 +129,8 @@ async function createCognitoUser(
       }),
     );
   }
+
+  return userSub;
 }
 
 async function main() {
@@ -204,7 +222,7 @@ async function main() {
         ? BASE_TEACHER_LAST_NAME!
         : faker.person.lastName();
 
-      await createCognitoUser(
+      const cognitoSub = await createCognitoUser(
         cognitoClient,
         AWS_COGNITO_USER_POOL_ID!,
         email,
@@ -215,6 +233,7 @@ async function main() {
       );
 
       let user = new UserEntity();
+      if (cognitoSub) user.id = cognitoSub;
       user.email = email;
       user.firstName = firstName;
       user.lastName = lastName;
@@ -259,7 +278,7 @@ async function main() {
         ? BASE_PARENT_LAST_NAME!
         : faker.person.lastName();
 
-      await createCognitoUser(
+      const cognitoSub = await createCognitoUser(
         cognitoClient,
         AWS_COGNITO_USER_POOL_ID!,
         email,
@@ -270,6 +289,7 @@ async function main() {
       );
 
       let pUser = new UserEntity();
+      if (cognitoSub) pUser.id = cognitoSub;
       pUser.email = email;
       pUser.firstName = firstName;
       pUser.lastName = lastName;
