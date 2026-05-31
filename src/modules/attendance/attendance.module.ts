@@ -10,7 +10,6 @@ import { AcademicClassesModule } from '../academic-classes/academic-classes.modu
 
 @Module({
   imports: [
-    AttendanceModule,
     StudentsModule,
     AcademicClassesModule,
     TypeOrmModule.forFeature([AttendanceEntity, AttendanceJustificationEntity]),
