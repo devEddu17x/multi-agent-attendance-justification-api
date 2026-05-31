@@ -29,6 +29,7 @@ const envFilePath = paths[NODE_ENV] || paths.development;
         config.rekognitionConfig,
         config.qdrantConfig,
         config.storageConfig,
+        config.anthropicConfig,
       ],
     }),
     TypeOrmModule.forRootAsync({
