@@ -15,6 +15,7 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
 import { QdrantModule } from './modules/qdrant/qdrant.module';
 import { JustifyModule } from './modules/justify/justify.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { AgentsModule } from './agents/agents.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { StorageModule } from './modules/storage/storage.module';
     QdrantModule,
     StorageModule,
     JustifyModule,
+    AgentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
