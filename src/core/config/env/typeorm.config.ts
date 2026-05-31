@@ -12,6 +12,8 @@ import { StudentEntity } from 'src/modules/students/entities/student.entity';
 import { EnrollmentEntity } from 'src/modules/academic-classes/entities/enrollment.entity';
 import { AttendanceEntity } from 'src/modules/attendance/entities/attendance.entity';
 import { AttendanceJustificationEntity } from 'src/modules/attendance/entities/attendance-justification.entity';
+import { JustificationSessionEntity } from 'src/modules/justify/entities/justification-session.entity';
+import { ChatMessageEntity } from 'src/modules/justify/entities/chat-message.entity';
 
 export default registerAs('typeorm', () => {
   const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_SSL } =
@@ -59,6 +61,8 @@ export default registerAs('typeorm', () => {
       EnrollmentEntity,
       AttendanceEntity,
       AttendanceJustificationEntity,
+      JustificationSessionEntity,
+      ChatMessageEntity,
     ],
     synchronize: process.env.NODE_ENV !== 'production',
     ssl:
