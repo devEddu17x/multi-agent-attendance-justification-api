@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { filterDocumentedEndpoints } from './utils/filter-documented-endpoints.util';
+import morgan from 'morgan';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -40,6 +41,7 @@ async function bootstrap() {
     useGlobalPrefix: true,
   });
   console.log(`API running on port ${apiConfig.port}`);
+  app.use(morgan('dev'));
   await app.listen(apiConfig.port);
 }
 void bootstrap();
