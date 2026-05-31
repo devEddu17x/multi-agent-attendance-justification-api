@@ -6,12 +6,7 @@ import { ChatMessageEntity } from '../entities/chat-message.entity';
 import { SessionStatus } from '../enums/session-status.enum';
 import { ChatMessageRole } from '../enums/chat-message-role.enum';
 import { ChatMessageDTO } from '../dto/chat-message.dto';
-
-export interface SessionResult {
-  id: string;
-  status: SessionStatus;
-  isNew: boolean;
-}
+import { SessionResult } from '../interfaces/session-result.interface';
 
 @Injectable()
 export class SessionManagerService {
