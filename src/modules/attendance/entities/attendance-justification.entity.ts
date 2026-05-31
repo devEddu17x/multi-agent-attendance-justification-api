@@ -26,8 +26,8 @@ export class AttendanceJustificationEntity {
   @Column({ type: 'text' })
   reason: string;
 
-  @Column({ name: 'evidence_url', type: 'varchar' })
-  evidenceUrl: string;
+  @Column({ name: 'evidences', type: 'jsonb', nullable: true })
+  evidences: { url: string; type: string; name: string }[] | null;
 
   @Column({
     type: 'enum',
