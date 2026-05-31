@@ -1,10 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient } from '@qdrant/js-client-rest';
 
 @Injectable()
 export class QdrantService {
-  private readonly logger = new Logger(QdrantService.name);
   private qdrantClient: QdrantClient;
   private qdrantUrl: string;
   private qdrantApiKey: string;
@@ -30,7 +29,7 @@ export class QdrantService {
     return this.qdrantClient.search(collectionName, {
       vector,
       limit,
-      filter: filter as any,
+      filter: filter,
       with_payload: true,
     });
   }
@@ -42,7 +41,7 @@ export class QdrantService {
   ) {
     return this.qdrantClient.scroll(collectionName, {
       limit,
-      filter: filter as any,
+      filter: filter,
       with_payload: true,
       with_vector: false,
     });
@@ -55,12 +54,9 @@ export class QdrantService {
     });
   }
 
-  async count(
-    collectionName: string,
-    filter?: Record<string, unknown>,
-  ) {
+  async count(collectionName: string, filter?: Record<string, unknown>) {
     return this.qdrantClient.count(collectionName, {
-      filter: filter as any,
+      filter: filter,
     });
   }
 
