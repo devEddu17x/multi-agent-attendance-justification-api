@@ -7,8 +7,10 @@ import { HistoryAgentService } from './services/history-agent.service';
 import { RegulationsAgentService } from './services/regulations-agent.service';
 import { TransactionalAgentService } from './services/transactional-agent.service';
 import { LlmService } from './services/llm.service';
+import { QdrantModule } from '../modules/qdrant/qdrant.module';
 
 @Module({
+  imports: [QdrantModule],
   providers: [
     LlmService,
     GraphService,
