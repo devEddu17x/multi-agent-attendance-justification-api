@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Body, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { JustifyChatService } from './services/justify-chat.service';
 import { JustifyStorageService } from './services/justify-storage.service';
@@ -16,6 +10,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ROLES } from '../../common/enums/roles.enum';
 import { SseEventService } from './services/sse-event.service';
+import { ApiDocChat, ApiDocGetPresignedUrls } from './docs/justify.doc';
 
 interface CurrentUserPayload {
   sub: string;
@@ -33,6 +28,7 @@ export class JustifyController {
     private readonly sse: SseEventService,
   ) {}
 
+  @ApiDocChat()
   @Post('chat')
   async chat(
     @Body() dto: ChatMessageDTO,
@@ -46,13 +42,17 @@ export class JustifyController {
     try {
       await this.justifyChatService.handleChat(dto, res, user.sub);
     } catch (error: any) {
-      const message = error?.response?.message || error?.message || 'Error processing request';
+      const message =
+        error?.response?.message ||
+        error?.message ||
+        'Error processing request';
       this.sse.emitError(res, message);
     } finally {
       this.sse.close(res);
     }
   }
 
+  @ApiDocGetPresignedUrls()
   @Post('presigned-urls')
   async getPresignedUrls(
     @Body() dto: PresignedUrlsDTO,
