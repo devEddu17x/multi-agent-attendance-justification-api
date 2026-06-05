@@ -5,6 +5,9 @@ import { ClassroomCourseTeacherEntity } from './entities/classroom-course-teache
 import { AcademicYearEntity } from './entities/academic-year.entity';
 import { EnrollmentEntity } from './entities/enrollment.entity';
 import { StudentEntity } from '../students/entities/student.entity';
+import { TeacherEntity } from '../teachers/entities/teacher.entity';
+import { CourseEntity } from '../courses/entities/course.entity';
+import { ClassroomEntity } from '../classroom/entities/classroom.entity';
 import { ScheduleService } from './services/schedule.service';
 import { EnrollmentService } from './services/enrollment.service';
 import { AcademicClassesController } from './academic-classes.controller';
@@ -17,6 +20,9 @@ import { AcademicClassesController } from './academic-classes.controller';
       AcademicYearEntity,
       EnrollmentEntity,
       StudentEntity,
+      TeacherEntity,
+      CourseEntity,
+      ClassroomEntity,
     ]),
   ],
   controllers: [AcademicClassesController],
