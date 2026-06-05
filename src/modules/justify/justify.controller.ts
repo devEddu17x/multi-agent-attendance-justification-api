@@ -11,12 +11,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { ROLES } from '../../common/enums/roles.enum';
 import { SseEventService } from './services/sse-event.service';
 import { ApiDocChat, ApiDocGetPresignedUrls } from './docs/justify.doc';
-
-interface CurrentUserPayload {
-  sub: string;
-  email: string;
-  roles: string[];
-}
+import type { User } from 'src/common/interfaces/user.interface';
 
 @Controller('attendance/justify')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,7 +28,7 @@ export class JustifyController {
   async chat(
     @Body() dto: ChatMessageDTO,
     @Res() res: Response,
-    @CurrentUser() user: CurrentUserPayload,
+    @CurrentUser() user: User,
   ) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -56,7 +51,7 @@ export class JustifyController {
   @Post('presigned-urls')
   async getPresignedUrls(
     @Body() dto: PresignedUrlsDTO,
-    @CurrentUser() user: CurrentUserPayload,
+    @CurrentUser() user: User,
   ) {
     return this.justifyStorageService.getPresignedUrlsForJustification(
       dto.files,
