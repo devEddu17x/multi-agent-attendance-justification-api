@@ -8,7 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ScheduleEntity } from '../entities/schedule.entity';
 import { ClassroomCourseTeacherEntity } from '../entities/classroom-course-teacher.entity';
 import { AcademicYearEntity } from '../entities/academic-year.entity';
+import { TeacherEntity } from '../../teachers/entities/teacher.entity';
 import { CreateScheduleDTO } from '../dto/create-schedule.dto';
+import { TeacherScheduleResult } from '../interfaces/teacher-schedule-result.interface';
 import { formatTimeHHMMSS } from 'src/utils/time.util';
 import { Repository } from 'typeorm';
 
@@ -23,6 +25,8 @@ export class ScheduleService {
     private readonly classroomCourseTeacherRepository: Repository<ClassroomCourseTeacherEntity>,
     @InjectRepository(AcademicYearEntity)
     private readonly academicYearRepository: Repository<AcademicYearEntity>,
+    @InjectRepository(TeacherEntity)
+    private readonly teacherRepository: Repository<TeacherEntity>,
   ) {}
 
   async create(dto: CreateScheduleDTO): Promise<ScheduleEntity> {
@@ -116,5 +120,51 @@ export class ScheduleService {
       .getOne();
 
     return schedule;
+  }
+
+  async getSchedulesFromTeacher(
+    userId: string,
+  ): Promise<TeacherScheduleResult[]> {
+    try {
+      const teacher = await this.teacherRepository.findOne({
+        where: { userId },
+      });
+
+      if (!teacher) {
+        throw new NotFoundException('Teacher not found for this user');
+      }
+
+      const schedules = await this.scheduleRepository
+        .createQueryBuilder('schedule')
+        .innerJoinAndSelect('schedule.classroomCourseTeacher', 'cct')
+        .innerJoinAndSelect('cct.course', 'course')
+        .innerJoinAndSelect('cct.classroom', 'classroom')
+        .where('cct.teacher_id = :teacherId', { teacherId: teacher.id })
+        .getMany();
+
+      return schedules.map((schedule) => ({
+        id: schedule.id,
+        dayOfWeek: schedule.dayOfWeek,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        course: {
+          id: schedule.classroomCourseTeacher.course.id,
+          name: schedule.classroomCourseTeacher.course.name,
+          code: schedule.classroomCourseTeacher.course.code,
+        },
+        classroom: {
+          id: schedule.classroomCourseTeacher.classroom.id,
+          name: schedule.classroomCourseTeacher.classroom.name,
+          building: schedule.classroomCourseTeacher.classroom.building,
+        },
+      }));
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(
+        `Failed to get schedules for user with id ${userId}`,
+        error,
+      );
+      throw new InternalServerErrorException('Could not get schedules');
+    }
   }
 }
