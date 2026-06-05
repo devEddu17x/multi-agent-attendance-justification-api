@@ -47,6 +47,26 @@ export class StudentsService {
     }
   }
 
+  async getStudentsByParentId(parentId: string): Promise<StudentEntity[]> {
+    try {
+      return await this.repository.find({
+        where: { parentId },
+        relations: {
+          parent: true,
+          baseClassroom: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch students for parent with id ${parentId}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        'Could not fetch students for parent',
+      );
+    }
+  }
+
   async getById(id: string): Promise<StudentEntity> {
     try {
       const entity = await this.repository.findOne({
