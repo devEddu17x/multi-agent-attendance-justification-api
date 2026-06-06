@@ -23,6 +23,10 @@ export class JustifyStorageService {
     return this.storageService.getFileUrl(keys);
   }
 
+  getPresignedDownloadUrl(key: string): Promise<string> {
+    return this.storageService.createPresignedGet(key);
+  }
+
   async getPresignedUrlsForJustification(
     files: FilePlan[],
     userId: string,
