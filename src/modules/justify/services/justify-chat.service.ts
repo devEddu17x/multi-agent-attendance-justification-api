@@ -7,6 +7,7 @@ import { AttachmentProcessorService } from './attachment-processor.service';
 import { AgentStateBuilderService } from './agent-state-builder.service';
 import { SseEventService } from './sse-event.service';
 import { GraphService } from '../../../agents/services/graph.service';
+import { AgentState } from '../../../agents/interfaces/agent-state.interface';
 
 @Injectable()
 export class JustifyChatService {
@@ -35,13 +36,17 @@ export class JustifyChatService {
       ? await this.attachmentProcessor.process(dto.attachments)
       : [];
 
-    if (blocks.length) {
-      this.messageMapper.appendMultimodal(
-        langChainMessages,
-        dto.content,
-        blocks,
-      );
-    }
+    // We do not append the multimodal blocks to langChainMessages anymore
+    // to avoid sending large base64 image payloads in subsequent LLM agent calls.
+    // The extractor agent will consume them directly from state.attachments.
+    //
+    // if (blocks.length) {
+    //   this.messageMapper.appendMultimodal(
+    //     langChainMessages,
+    //     dto.content,
+    //     blocks,
+    //   );
+    // }
 
     this.sse.emitStatus(res, 'processing', {
       message: 'Analizando solicitud...',
@@ -55,7 +60,9 @@ export class JustifyChatService {
       dto.studentId,
     );
 
-    const result = await this.graphService.invoke(state as any);
+    const result = (await this.graphService.invoke(
+      state as any,
+    )) as Partial<AgentState>;
 
     const content =
       result.finalResponse ?? 'Lo siento, no pude procesar tu solicitud.';
