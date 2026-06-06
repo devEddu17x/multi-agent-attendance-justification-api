@@ -33,12 +33,18 @@ export default registerAs('storage', () => {
         }
       : undefined;
 
+  const domain = BUCKET_REGIONAL_DOMAIN_NAME!.trim();
+  const domainUrl = new URL(domain);
+  const endpoint = `${domainUrl.protocol}//${domainUrl.host}`;
+  const baseUrl = domain.replace(/\/$/, '');
+
   return {
     config: {
       region: BUCKET_REGION,
+      endpoint,
       ...(credentials && { credentials }),
     },
     bucket: BUCKET_NAME,
-    baseUrl: `https://${BUCKET_REGIONAL_DOMAIN_NAME}`,
+    baseUrl,
   };
 });
