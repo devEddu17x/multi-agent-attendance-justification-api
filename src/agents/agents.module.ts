@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { GraphService } from './services/graph.service';
 import { OrchestratorAgentService } from './services/orchestrator-agent.service';
 import { CommunicatorAgentService } from './services/communicator-agent.service';
@@ -12,6 +12,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AttendanceJustificationEntity } from '../modules/attendance/entities/attendance-justification.entity';
 import { AttendanceEntity } from '../modules/attendance/entities/attendance.entity';
 import { JustificationSessionEntity } from '../modules/justify/entities/justification-session.entity';
+import { AttendanceModule } from '../modules/attendance/attendance.module';
+import { JustifyModule } from '../modules/justify/justify.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { JustificationSessionEntity } from '../modules/justify/entities/justific
       AttendanceEntity,
       JustificationSessionEntity,
     ]),
+    AttendanceModule,
+    forwardRef(() => JustifyModule),
   ],
   providers: [
     LlmService,
