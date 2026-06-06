@@ -15,6 +15,28 @@ export class OrchestratorAgentService {
   constructor(private readonly llmService: LlmService) {}
 
   async execute(state: AgentState): Promise<Partial<AgentState>> {
+    // Hybrid routing: if attachments are present, always go to extractor first.
+    // The extractor → history → regulations → communicator chain handles the rest.
+    if (state.attachments && state.attachments.length > 0) {
+      this.logger.debug('Attachments detected, routing to extractor');
+      return { nextAgent: 'extractor' };
+    }
+
+    // No attachments: ask the LLM to decide based on the message content
+    try {
+      const nextAgent = await this.decideWithLlm(state);
+      this.logger.debug(`LLM routing decision: ${nextAgent}`);
+      return { nextAgent };
+    } catch (err) {
+      this.logger.error(
+        'Orchestrator LLM call failed, defaulting to communicator',
+        err,
+      );
+      return { nextAgent: 'communicator' };
+    }
+  }
+
+  private async decideWithLlm(state: AgentState): Promise<string> {
     const model = this.llmService.getModel();
 
     const lastUserMessage = this.getLastUserMessageText(state);
@@ -27,20 +49,24 @@ export class OrchestratorAgentService {
     try {
       const response = await model.invoke(messages);
       const raw = (response.content as string).trim();
-      const decision = JSON.parse(raw) as { nextAgent: string };
+      const clean = raw
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/i, '')
+        .trim();
+      const decision = JSON.parse(clean) as { nextAgent: string };
 
-      const validAgents = ['communicator', 'extractor', 'transactional'];
+      const validAgents = ['history', 'communicator', 'transactional'];
       const nextAgent = validAgents.includes(decision.nextAgent)
         ? decision.nextAgent
         : 'communicator';
 
-      return { nextAgent };
+      return nextAgent;
     } catch (error) {
       this.logger.warn(
         'Orchestrator failed to parse LLM response, defaulting to communicator',
         error,
       );
-      return { nextAgent: 'communicator' };
+      return 'communicator';
     }
   }
 

@@ -24,16 +24,33 @@ export class AttachmentProcessorService {
   private async processFile(
     fileId: string,
   ): Promise<AnthropicContentBlock | null> {
-    const url = this.justifyStorageService.getFileUrls([fileId])[0];
-    if (!url) return null;
+    // Generate a short-lived signed GET URL to access the private bucket
+    const signedUrl =
+      await this.justifyStorageService.getPresignedDownloadUrl(fileId);
+    this.logger.debug(`Downloading attachment from signed URL: key=${fileId}`);
 
-    const response = await fetch(url);
+    const response = await fetch(signedUrl);
+
+    if (!response.ok) {
+      this.logger.error(
+        `Failed to download attachment ${fileId}: HTTP ${response.status} ${response.statusText}`,
+      );
+      return null;
+    }
+
     const buffer = await response.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
     const contentType = response.headers.get('content-type') || '';
 
     const type = this.detectType(fileId, contentType);
-    if (!type) return null;
+    if (!type) {
+      this.logger.warn(
+        `Unsupported content type "${contentType}" for file ${fileId}`,
+      );
+      return null;
+    }
+
+    this.logger.debug(`Attachment processed: key=${fileId}, type=${type}`);
 
     return {
       type,

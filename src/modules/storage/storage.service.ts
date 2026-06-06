@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -16,8 +17,15 @@ export class StorageService {
   private url: string;
 
   constructor(private readonly configService: ConfigService) {
-    const storage = this.configService.get('storage');
-    this.s3 = new S3Client(storage.config);
+    const storage = this.configService.get<{
+      config: any;
+      bucket: string;
+      baseUrl: string;
+    }>('storage');
+    if (!storage) {
+      throw new Error('Storage configuration is missing');
+    }
+    this.s3 = new S3Client(storage.config as Record<string, any>);
     this.bucket = storage.bucket;
     this.url = storage.baseUrl;
   }
@@ -62,6 +70,15 @@ export class StorageService {
 
   getFileUrl(keys: string[]): string[] {
     return keys.map((key) => `${this.url}/${key}`);
+  }
+
+  async createPresignedGet(
+    key: string,
+    opts?: { ttlSeconds?: number },
+  ): Promise<string> {
+    const ttl = opts?.ttlSeconds ?? 300;
+    const cmd = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+    return getSignedUrl(this.s3, cmd, { expiresIn: ttl });
   }
 
   async exists(key: string): Promise<boolean> {
