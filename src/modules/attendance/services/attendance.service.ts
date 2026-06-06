@@ -19,6 +19,8 @@ import { ScheduleEntity } from '../../academic-classes/entities/schedule.entity'
 import { EnrollmentEntity } from '../../academic-classes/entities/enrollment.entity';
 import { StudentAttendanceResult } from '../interfaces/student-attendance-result.interface';
 import { ScheduleAttendanceResult } from '../interfaces/schedule-attendance-result.interface';
+import { AttendanceJustificationEntity } from '../entities/attendance-justification.entity';
+import { JustificationStatus } from '../enums/justification-status.enum';
 
 @Injectable()
 export class AttendanceService {
@@ -36,6 +38,8 @@ export class AttendanceService {
     private readonly scheduleRepository: Repository<ScheduleEntity>,
     @InjectRepository(EnrollmentEntity)
     private readonly enrollmentRepository: Repository<EnrollmentEntity>,
+    @InjectRepository(AttendanceJustificationEntity)
+    private readonly justificationRepository: Repository<AttendanceJustificationEntity>,
   ) {}
 
   async registerStudentFace(studentId: string, photo: Express.Multer.File) {
@@ -98,8 +102,8 @@ export class AttendanceService {
         student,
         schedule,
       };
-    } catch (error: any) {
-      if (error?.code === '23505') {
+    } catch (error: unknown) {
+      if (this.isPostgresDuplicateKeyError(error)) {
         throw new ConflictException(
           'Attendance already registered for this schedule today',
         );
@@ -108,6 +112,17 @@ export class AttendanceService {
         'Failed to register attendance. Please try again later.',
       );
     }
+  }
+
+  private isPostgresDuplicateKeyError(
+    error: unknown,
+  ): error is { code: string } {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      typeof (error as { code?: unknown }).code === 'string'
+    );
   }
 
   async getParentStudentAttendance(parentId: string) {
@@ -284,5 +299,64 @@ export class AttendanceService {
           : null,
       };
     });
+  }
+
+  async createJustification(
+    attendanceId: string,
+    parentId: string,
+    reason: string,
+    status: JustificationStatus,
+    evidences: { url: string; type: string; name: string }[] | null,
+    aiMetadata: Record<string, unknown>,
+  ): Promise<AttendanceJustificationEntity> {
+    return this.justificationRepository.save(
+      this.justificationRepository.create({
+        attendanceId,
+        parentId,
+        requestDate: new Date(),
+        reason,
+        evidences,
+        status,
+        aiMetadata,
+      }),
+    );
+  }
+
+  async getAbsentOrLateRecordsByStudent(
+    studentId: string,
+    dates?: string[],
+    limit = 1,
+  ): Promise<AttendanceEntity[]> {
+    if (dates && dates.length > 0) {
+      const all = await this.attendanceRepository.find({
+        where: {
+          studentId,
+          status: In([AttendanceStatus.ABSENT, AttendanceStatus.LATE]),
+        },
+      });
+      return all.filter((record) => {
+        const recordDate = new Date(record.date).toISOString().split('T')[0];
+        return dates.some(
+          (d) => new Date(d).toISOString().split('T')[0] === recordDate,
+        );
+      });
+    }
+
+    return this.attendanceRepository.find({
+      where: {
+        studentId,
+        status: In([AttendanceStatus.ABSENT, AttendanceStatus.LATE]),
+      },
+      order: { date: 'DESC' },
+      take: limit,
+    });
+  }
+
+  async getParentIdByStudentId(studentId: string): Promise<string | null> {
+    const record = await this.attendanceRepository.findOne({
+      where: { studentId },
+      relations: { student: { parent: true } },
+    });
+    return record?.student?.parent?.id ?? null;
   }
 }

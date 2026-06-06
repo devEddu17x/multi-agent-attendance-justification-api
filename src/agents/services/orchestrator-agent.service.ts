@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import {
+  BaseMessage,
+  SystemMessage,
+  HumanMessage,
+} from '@langchain/core/messages';
 import { LlmService } from './llm.service';
 import { AgentState } from '../interfaces/agent-state.interface';
 import { ORCHESTRATOR_SYSTEM_PROMPT } from '../prompts/orchestrator-system.prompt';
-import { SystemMessage } from '@langchain/core/messages';
 
 @Injectable()
 export class OrchestratorAgentService {
@@ -35,41 +39,70 @@ export class OrchestratorAgentService {
   private async decideWithLlm(state: AgentState): Promise<string> {
     const model = this.llmService.getModel();
 
+    const lastUserMessage = this.getLastUserMessageText(state);
+
     const messages = [
       new SystemMessage(ORCHESTRATOR_SYSTEM_PROMPT),
-      // Only pass the last user message to keep the prompt focused
-      ...state.messages,
+      new HumanMessage(lastUserMessage || 'Hola'),
     ];
 
-    const response = await model.invoke(messages);
-    const content = (response.content as string).trim();
-
-    const parsed = this.parseDecision(content);
-    const allowed = ['history', 'communicator', 'transactional'];
-
-    if (allowed.includes(parsed.nextAgent)) {
-      return parsed.nextAgent;
-    }
-
-    this.logger.warn(
-      `Unexpected nextAgent "${parsed.nextAgent}", defaulting to communicator`,
-    );
-    return 'communicator';
-  }
-
-  private parseDecision(raw: string): { nextAgent: string } {
     try {
+      const response = await model.invoke(messages);
+      const raw = (response.content as string).trim();
       const clean = raw
         .replace(/^```(?:json)?\s*/i, '')
         .replace(/\s*```$/i, '')
         .trim();
-      return JSON.parse(clean) as { nextAgent: string };
-    } catch {
+      const decision = JSON.parse(clean) as { nextAgent: string };
+
+      const validAgents = ['history', 'communicator', 'transactional'];
+      const nextAgent = validAgents.includes(decision.nextAgent)
+        ? decision.nextAgent
+        : 'communicator';
+
+      return nextAgent;
+    } catch (error) {
       this.logger.warn(
-        'Could not parse orchestrator JSON, defaulting to communicator',
-        raw,
+        'Orchestrator failed to parse LLM response, defaulting to communicator',
+        error,
       );
-      return { nextAgent: 'communicator' };
+      return 'communicator';
     }
+  }
+
+  private getLastUserMessageText(state: AgentState): string {
+    type MessageWithType = BaseMessage & {
+      _getType?: () => string;
+      content?: unknown;
+    };
+
+    const messages = state.messages ?? [];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i] as MessageWithType;
+      if (!msg || typeof msg !== 'object') continue;
+
+      const role = typeof msg._getType === 'function' ? msg._getType() : '';
+      if (role !== 'human') continue;
+
+      const content = msg.content;
+      if (typeof content === 'string') return content;
+      if (Array.isArray(content)) {
+        return content
+          .map((block) => {
+            if (
+              typeof block === 'object' &&
+              block !== null &&
+              'type' in block &&
+              (block as { type?: string }).type === 'text'
+            ) {
+              return (block as { text?: string }).text ?? '';
+            }
+            return '';
+          })
+          .filter(Boolean)
+          .join(' ');
+      }
+    }
+    return '';
   }
 }
