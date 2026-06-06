@@ -1,15 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { LlmService } from './llm.service';
 import { AgentState } from '../interfaces/agent-state.interface';
 import { TRANSACTIONAL_SYSTEM_PROMPT } from '../prompts/transactional-system.prompt';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import { AttendanceJustificationEntity } from '../../modules/attendance/entities/attendance-justification.entity';
-import { AttendanceEntity } from '../../modules/attendance/entities/attendance.entity';
+import { AttendanceService } from '../../modules/attendance/services/attendance.service';
 import { JustificationSessionEntity } from '../../modules/justify/entities/justification-session.entity';
 import { JustificationStatus } from '../../modules/attendance/enums/justification-status.enum';
-import { AttendanceStatus } from '../../modules/attendance/enums/attendance-status.enum';
 import { SessionStatus } from '../../modules/justify/enums/session-status.enum';
 
 interface TransactionalDecision {
@@ -26,23 +24,15 @@ export class TransactionalAgentService {
 
   constructor(
     private readonly llmService: LlmService,
-    @InjectRepository(AttendanceJustificationEntity)
-    private readonly justificationRepo: Repository<AttendanceJustificationEntity>,
-    @InjectRepository(AttendanceEntity)
-    private readonly attendanceRepo: Repository<AttendanceEntity>,
+    private readonly attendanceService: AttendanceService,
     @InjectRepository(JustificationSessionEntity)
     private readonly sessionRepo: Repository<JustificationSessionEntity>,
   ) {}
 
   async execute(state: AgentState): Promise<Partial<AgentState>> {
     const decision = await this.getDecisionFromLlm(state);
-
     await this.persistDecision(state, decision);
-
-    return {
-      finalResponse: undefined,
-      nextAgent: 'communicator',
-    };
+    return { nextAgent: 'communicator' };
   }
 
   private async getDecisionFromLlm(
@@ -105,34 +95,14 @@ export class TransactionalAgentService {
 
     const extracted = state.extractedData ?? {};
     const absenceDates = extracted.absenceDates as string[] | undefined;
+    const absenceDays = extracted.absenceDays as number | undefined;
 
-    let attendanceRecords: AttendanceEntity[] = [];
-
-    if (absenceDates && absenceDates.length > 0) {
-      const dateObjects = absenceDates.map((d) => new Date(d));
-      attendanceRecords = await this.attendanceRepo.find({
-        where: {
-          studentId: state.studentId,
-          status: In([AttendanceStatus.ABSENT, AttendanceStatus.LATE]),
-        },
-      });
-
-      attendanceRecords = attendanceRecords.filter((record) => {
-        const recordDate = new Date(record.date).toISOString().split('T')[0];
-        return dateObjects.some(
-          (d) => d.toISOString().split('T')[0] === recordDate,
-        );
-      });
-    } else {
-      attendanceRecords = await this.attendanceRepo.find({
-        where: {
-          studentId: state.studentId,
-          status: In([AttendanceStatus.ABSENT, AttendanceStatus.LATE]),
-        },
-        order: { date: 'DESC' },
-        take: (extracted.absenceDays as number | undefined) ?? 1,
-      });
-    }
+    const attendanceRecords =
+      await this.attendanceService.getAbsentOrLateRecordsByStudent(
+        state.studentId,
+        absenceDates,
+        absenceDays ?? 1,
+      );
 
     if (attendanceRecords.length === 0) {
       this.logger.warn(
@@ -141,42 +111,46 @@ export class TransactionalAgentService {
       return;
     }
 
-    const justificationStatus = this.mapVerdictToStatus(decision.verdict);
-    const evidences = this.buildEvidences(state);
-    const parentId = await this.resolveParentId(state);
+    const parentId = await this.attendanceService.getParentIdByStudentId(
+      state.studentId,
+    );
 
     if (!parentId) {
       this.logger.warn(
-        `Could not resolve parentId for userId ${state.userId}, skipping justification persistence`,
+        `Could not resolve parentId for student ${state.studentId}`,
       );
       return;
     }
 
-    const justifications = attendanceRecords.map((record) =>
-      this.justificationRepo.create({
-        attendanceId: record.id,
-        parentId,
-        requestDate: new Date(),
-        reason:
-          (extracted.rawSummary as string) ??
-          'Justificación enviada por el padre',
-        evidences,
-        status: justificationStatus,
-        aiMetadata: {
-          verdict: decision.verdict,
-          reason: decision.reason,
-          appliedArticle: decision.appliedArticle,
-          missingDocuments: decision.missingDocuments,
-          extractedData: state.extractedData,
-          regulationsOutput: state.regulationsOutput,
-          historyOutput: state.historyOutput,
-        },
-      }),
+    const justificationStatus = this.mapVerdictToStatus(decision.verdict);
+    const evidences = this.buildEvidences(state);
+    const reason =
+      (extracted.rawSummary as string) ?? 'Justificación enviada por el padre';
+    const aiMetadata = {
+      verdict: decision.verdict,
+      reason: decision.reason,
+      appliedArticle: decision.appliedArticle,
+      missingDocuments: decision.missingDocuments,
+      extractedData: state.extractedData,
+      regulationsOutput: state.regulationsOutput,
+      historyOutput: state.historyOutput,
+    };
+
+    await Promise.all(
+      attendanceRecords.map((record) =>
+        this.attendanceService.createJustification(
+          record.id,
+          parentId,
+          reason,
+          justificationStatus,
+          evidences,
+          aiMetadata,
+        ),
+      ),
     );
 
-    await this.justificationRepo.save(justifications);
     this.logger.log(
-      `Persisted ${justifications.length} justification(s) with status ${justificationStatus} for student ${state.studentId}`,
+      `Persisted ${attendanceRecords.length} justification(s) with status ${justificationStatus}`,
     );
   }
 
@@ -203,17 +177,6 @@ export class TransactionalAgentService {
     };
 
     await this.sessionRepo.save(session);
-  }
-
-  private async resolveParentId(state: AgentState): Promise<string | null> {
-    if (!state.studentId) return null;
-
-    const attendance = await this.attendanceRepo.findOne({
-      where: { studentId: state.studentId },
-      relations: { student: { parent: true } },
-    });
-
-    return attendance?.student?.parent?.id ?? null;
   }
 
   private buildEvidences(

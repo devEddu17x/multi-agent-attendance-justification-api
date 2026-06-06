@@ -27,5 +27,6 @@ import { AcademicClassesModule } from '../academic-classes/academic-classes.modu
   ],
   controllers: [AttendanceController],
   providers: [AttendanceService, RekognitionService],
+  exports: [AttendanceService],
 })
 export class AttendanceModule {}
