@@ -8,9 +8,20 @@ import { RegulationsAgentService } from './services/regulations-agent.service';
 import { TransactionalAgentService } from './services/transactional-agent.service';
 import { LlmService } from './services/llm.service';
 import { QdrantModule } from '../modules/qdrant/qdrant.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AttendanceJustificationEntity } from '../modules/attendance/entities/attendance-justification.entity';
+import { AttendanceEntity } from '../modules/attendance/entities/attendance.entity';
+import { JustificationSessionEntity } from '../modules/justify/entities/justification-session.entity';
 
 @Module({
-  imports: [QdrantModule],
+  imports: [
+    QdrantModule,
+    TypeOrmModule.forFeature([
+      AttendanceJustificationEntity,
+      AttendanceEntity,
+      JustificationSessionEntity,
+    ]),
+  ],
   providers: [
     LlmService,
     GraphService,
