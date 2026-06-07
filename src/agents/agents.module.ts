@@ -13,6 +13,7 @@ import { AttendanceJustificationEntity } from '../modules/attendance/entities/at
 import { AttendanceEntity } from '../modules/attendance/entities/attendance.entity';
 import { JustificationSessionEntity } from '../modules/justify/entities/justification-session.entity';
 import { AttendanceModule } from '../modules/attendance/attendance.module';
+import { StudentsModule } from '../modules/students/students.module';
 import { JustifyModule } from '../modules/justify/justify.module';
 
 @Module({
@@ -24,6 +25,7 @@ import { JustifyModule } from '../modules/justify/justify.module';
       JustificationSessionEntity,
     ]),
     AttendanceModule,
+    StudentsModule,
     forwardRef(() => JustifyModule),
   ],
   providers: [
