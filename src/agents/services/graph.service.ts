@@ -70,14 +70,16 @@ export class GraphService {
       )
       .addEdge('extractor', 'history')
       .addEdge('history', 'regulations')
-      .addEdge('regulations', 'communicator')
+      .addEdge('regulations', 'transactional')
       .addEdge('transactional', 'communicator')
       .addEdge('communicator', END);
 
     this.compiledGraph = graph.compile();
   }
 
-  async invoke(state: any): Promise<any> {
-    return this.compiledGraph.invoke(state);
+  invoke(state: unknown): Promise<unknown> {
+    return (
+      this.compiledGraph as { invoke(s: unknown): Promise<unknown> }
+    ).invoke(state);
   }
 }
