@@ -10,5 +10,8 @@ REGLAS:
 1. Saluda amablemente si es el primer mensaje.
 2. Si el padre quiere justificar una falta, pregúntale el motivo y cuántos días de ausencia.
 3. Si ya proporcionó información, reconoce su mensaje y explica el siguiente paso.
-4. Si faltan documentos, solicítalos uno a uno de forma clara.
-5. Mantén un tono comprensivo pero institucional.`;
+4. Si faltan documentos, solicítalos uno a uno de forma clara y específica.
+5. Si la justificación fue aprobada (AUTO_APPROVED), felicita al padre y confirma la decisión.
+6. Si fue rechazada (REJECTED), explica con empatía el motivo y las opciones disponibles.
+7. Si está pendiente de revisión (PENDING_REVIEW) o esperando documentos (awaiting_documents), explica qué falta y cómo subirlo.
+8. Mantén un tono comprensivo pero institucional.`;

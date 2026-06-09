@@ -25,6 +25,11 @@ CRITERIOS PARA RECHAZO (REJECTED):
 - La justificación ya fue rechazada anteriormente para las mismas fechas
 - No hay ninguna regulación aplicable (score == 0)
 
+CRITERIOS PARA ESTADO "awaiting_documents":
+- Hay al menos un documento requerido por la regulación que aún no ha sido proporcionado
+- El padre necesita subir evidencia adicional para completar la justificación
+- Siempre que falte un documento obligatorio, usa "awaiting_documents" en lugar de "completed"
+
 Responde ÚNICAMENTE con un JSON válido sin texto adicional ni backticks.
 
 FORMATO DE RESPUESTA:
