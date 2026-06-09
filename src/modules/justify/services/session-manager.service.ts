@@ -28,7 +28,15 @@ export class SessionManagerService {
       if (!session) {
         throw new NotFoundException('Session not found');
       }
-      return { id: session.id, status: session.status, isNew: false };
+      return {
+        id: session.id,
+        status: session.status,
+        isNew: false,
+        extractedData: session.extractedData ?? undefined,
+        historyOutput: session.historyOutput ?? undefined,
+        regulationsOutput: session.regulationsOutput ?? undefined,
+        finalVerdict: session.finalVerdict ?? undefined,
+      };
     }
 
     const session = await this.sessionRepo.save({
@@ -38,6 +46,38 @@ export class SessionManagerService {
     });
 
     return { id: session.id, status: session.status, isNew: true };
+  }
+
+  async saveSessionOutputs(
+    sessionId: string,
+    outputs: {
+      extractedData?: Record<string, unknown>;
+      historyOutput?: Record<string, unknown>;
+      regulationsOutput?: Record<string, unknown>;
+      finalVerdict?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    const session = await this.sessionRepo.findOne({
+      where: { id: sessionId },
+    });
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    if (outputs.extractedData) {
+      session.extractedData = outputs.extractedData;
+    }
+    if (outputs.historyOutput) {
+      session.historyOutput = outputs.historyOutput;
+    }
+    if (outputs.regulationsOutput) {
+      session.regulationsOutput = outputs.regulationsOutput;
+    }
+    if (outputs.finalVerdict) {
+      session.finalVerdict = outputs.finalVerdict;
+    }
+
+    await this.sessionRepo.save(session);
   }
 
   async saveUserMessage(sessionId: string, dto: ChatMessageDTO): Promise<void> {
