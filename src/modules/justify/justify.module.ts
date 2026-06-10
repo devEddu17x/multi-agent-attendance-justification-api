@@ -6,6 +6,7 @@ import { SessionManagerService } from './services/session-manager.service';
 import { StateBuilderService } from './services/state-builder.service';
 import { AttachmentProcessorService } from './services/attachment-processor.service';
 import { SseEventService } from './services/sse-event.service';
+import { ReasoningService } from './services/reasoning.service';
 import { JustifyStorageService } from './services/justify-storage.service';
 import { JustificationService } from './services/justification.service';
 import { StorageModule } from '../storage/storage.module';
@@ -30,6 +31,7 @@ import { StudentsModule } from '../students/students.module';
     StateBuilderService,
     AttachmentProcessorService,
     SseEventService,
+    ReasoningService,
     JustifyStorageService,
     JustificationService,
   ],
