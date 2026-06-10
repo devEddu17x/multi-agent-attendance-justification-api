@@ -5,3 +5,4 @@ export { default as storageConfig } from './storage.config';
 export { default as rekognitionConfig } from './rekognition.config';
 export { default as qdrantConfig } from './qdrant.config';
 export { default as anthropicConfig } from './anthropic.config';
+export { default as googleEmbeddingsConfig } from './google-embedding.config';
