@@ -20,6 +20,15 @@ export class SseEventService {
     this.emit(res, 'done', { sessionId, status });
   }
 
+  emitReasoning(
+    res: Response,
+    agent: string,
+    message: string,
+    details?: Record<string, unknown>,
+  ): void {
+    this.emit(res, 'reasoning', { agent, message, details });
+  }
+
   emitError(res: Response, message: string): void {
     this.emit(res, 'error', { message });
   }
