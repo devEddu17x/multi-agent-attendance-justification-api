@@ -1,4 +1,6 @@
 export interface RegulationsAnalysis {
+  available: boolean;
+  reason?: string;
   article: {
     articleId: number;
     articleNumber: string;

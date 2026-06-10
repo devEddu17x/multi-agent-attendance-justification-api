@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Equal, In, Repository } from 'typeorm';
+import { Equal, In, Repository, DataSource } from 'typeorm';
 import { RekognitionService } from './rekognition.service';
 import { StudentsService } from '../../students/students.service';
 import { AttendanceEntity } from '../entities/attendance.entity';
@@ -21,6 +21,7 @@ import { StudentAttendanceResult } from '../interfaces/student-attendance-result
 import { ScheduleAttendanceResult } from '../interfaces/schedule-attendance-result.interface';
 import { AttendanceJustificationEntity } from '../entities/attendance-justification.entity';
 import { JustificationStatus } from '../enums/justification-status.enum';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AttendanceService {
@@ -40,6 +41,7 @@ export class AttendanceService {
     private readonly enrollmentRepository: Repository<EnrollmentEntity>,
     @InjectRepository(AttendanceJustificationEntity)
     private readonly justificationRepository: Repository<AttendanceJustificationEntity>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async registerStudentFace(studentId: string, photo: Express.Multer.File) {
@@ -103,7 +105,7 @@ export class AttendanceService {
         schedule,
       };
     } catch (error: unknown) {
-      if (this.isPostgresDuplicateKeyError(error)) {
+      if (error instanceof Error && 'code' in error && error.code === '23505') {
         throw new ConflictException(
           'Attendance already registered for this schedule today',
         );
@@ -112,17 +114,6 @@ export class AttendanceService {
         'Failed to register attendance. Please try again later.',
       );
     }
-  }
-
-  private isPostgresDuplicateKeyError(
-    error: unknown,
-  ): error is { code: string } {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      typeof (error as { code?: unknown }).code === 'string'
-    );
   }
 
   async getParentStudentAttendance(parentId: string) {
@@ -301,39 +292,111 @@ export class AttendanceService {
     });
   }
 
-  async createJustification(
-    attendanceId: string,
-    parentId: string,
-    reason: string,
-    status: JustificationStatus,
-    evidences: { url: string; type: string; name: string }[] | null,
-    aiMetadata: Record<string, unknown>,
-  ): Promise<AttendanceJustificationEntity> {
-    return this.justificationRepository.save(
+  async createJustification(data: {
+    attendanceIds: string[];
+    studentId: string;
+    parentId: string;
+    reason: string;
+    status: JustificationStatus;
+    evidences: { key: string; type: string; name: string }[] | null;
+    aiMetadata: { verdict: string; reason: string };
+  }): Promise<AttendanceJustificationEntity> {
+    const justification = await this.justificationRepository.save(
       this.justificationRepository.create({
-        attendanceId,
-        parentId,
+        studentId: data.studentId,
+        parentId: data.parentId,
         requestDate: new Date(),
-        reason,
-        evidences,
-        status,
-        aiMetadata,
+        reason: data.reason,
+        evidences: data.evidences,
+        status: data.status,
+        aiMetadata: data.aiMetadata,
       }),
     );
+
+    // Link attendance records to the justification
+    await this.attendanceRepository.update(
+      { id: In(data.attendanceIds) },
+      { justificationId: justification.id },
+    );
+
+    // If approved, mark attendance records as excused
+    if (data.status === JustificationStatus.AUTO_APPROVED) {
+      await this.attendanceRepository.update(
+        { id: In(data.attendanceIds) },
+        { status: AttendanceStatus.EXCUSED },
+      );
+    }
+
+    return justification;
   }
 
-  async getAbsentOrLateRecordsByStudent(
+  async updateJustification(
+    justificationId: string,
+    data: {
+      status?: JustificationStatus;
+      evidences?: { key: string; type: string; name: string }[] | null;
+      aiMetadata?: { verdict: string; reason: string };
+    },
+  ): Promise<AttendanceJustificationEntity | null> {
+    const justification = await this.justificationRepository.findOne({
+      where: { id: justificationId },
+    });
+    
+    if (!justification) {
+      return null;
+    }
+
+    if (data.status !== undefined) {
+      justification.status = data.status;
+    }
+    if (data.evidences !== undefined) {
+      justification.evidences = data.evidences;
+    }
+    if (data.aiMetadata !== undefined) {
+      justification.aiMetadata = data.aiMetadata;
+    }
+
+    const updated = await this.justificationRepository.save(justification);
+
+    // If now approved, mark attendance records as excused
+    if (data.status === JustificationStatus.AUTO_APPROVED) {
+      await this.attendanceRepository.update(
+        { justificationId: justification.id },
+        { status: AttendanceStatus.EXCUSED },
+      );
+    }
+
+    return updated;
+  }
+
+  async getJustificationById(
+    justificationId: string,
+  ): Promise<AttendanceJustificationEntity | null> {
+    return this.justificationRepository.findOne({
+      where: { id: justificationId },
+    });
+  }
+
+  async getAbsentRecordsByStudent(
     studentId: string,
     dates?: string[],
-    limit = 1,
   ): Promise<AttendanceEntity[]> {
+    return this.getRecordsByStudentAndDates(studentId, dates, AttendanceStatus.ABSENT);
+  }
+
+  async getRecordsByStudentAndDates(
+    studentId: string,
+    dates?: string[],
+    status?: AttendanceStatus,
+  ): Promise<AttendanceEntity[]> {
+    const where: any = { studentId };
+    if (status) {
+      where.status = status;
+    }
+
+    const all = await this.attendanceRepository.find({ where });
+    
     if (dates && dates.length > 0) {
-      const all = await this.attendanceRepository.find({
-        where: {
-          studentId,
-          status: In([AttendanceStatus.ABSENT, AttendanceStatus.LATE]),
-        },
-      });
       return all.filter((record) => {
         const recordDate = new Date(record.date).toISOString().split('T')[0];
         return dates.some(
@@ -342,21 +405,121 @@ export class AttendanceService {
       });
     }
 
-    return this.attendanceRepository.find({
-      where: {
-        studentId,
-        status: In([AttendanceStatus.ABSENT, AttendanceStatus.LATE]),
-      },
-      order: { date: 'DESC' },
-      take: limit,
-    });
+    return all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
-  async getParentIdByStudentId(studentId: string): Promise<string | null> {
-    const record = await this.attendanceRepository.findOne({
+  async getJustificationsByStudentId(
+    studentId: string,
+  ): Promise<{ date: string; reason: string; status: JustificationStatus }[]> {
+    const justifications = await this.justificationRepository.find({
       where: { studentId },
-      relations: { student: { parent: true } },
+      order: { requestDate: 'DESC' },
+      take: 20,
     });
-    return record?.student?.parent?.id ?? null;
+
+    return justifications.map((j) => ({
+      date: j.requestDate.toISOString().split('T')[0],
+      reason: j.reason,
+      status: j.status,
+    }));
+  }
+
+  async generateAbsences(dateStr: string): Promise<{ generated: number }> {
+    // Validate date format (YYYY-MM-DD) and compute day of week
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(dateStr)) {
+      throw new BadRequestException(
+        'Invalid date format. Use YYYY-MM-DD (e.g., 2026-06-05)',
+      );
+    }
+
+    // Use a date at 12:00 UTC to avoid timezone boundary issues
+    const dateObj = new Date(`${dateStr}T12:00:00Z`);
+    const dayOfWeek = dateObj.getUTCDay() === 0 ? 7 : dateObj.getUTCDay();
+    if (dayOfWeek === 6 || dayOfWeek === 7) {
+      throw new BadRequestException('Only Monday to Friday are allowed');
+    }
+
+    // Raw SQL: find all student+schedule combos that should have attendance but don't
+    const missingRecords = await this.dataSource.query(
+      `
+      SELECT s.id AS student_id, sch.id AS schedule_id
+      FROM students s
+      INNER JOIN enrollments e ON e.student_id = s.id
+      INNER JOIN classroom_course_teacher cct ON cct.id = e.classroom_course_teacher_id
+      INNER JOIN schedules sch ON sch.classroom_course_teacher_id = cct.id
+      WHERE s.is_active = true
+        AND sch.day_of_week = $1
+        AND NOT EXISTS (
+          SELECT 1 FROM attendance a
+          WHERE a.student_id = s.id
+            AND a.schedule_id = sch.id
+            AND a.date = $2::date
+        )
+      `,
+      [dayOfWeek, dateStr],
+    );
+
+    if (missingRecords.length === 0) {
+      return { generated: 0 };
+    }
+
+    // Raw SQL: insert all absences at once using string dates
+    const insertValues = missingRecords
+      .map(
+        (r) =>
+          `('${randomUUID()}', '${r.student_id}', '${r.schedule_id}', '${dateStr}', 'ABSENT', NULL, 0, NULL)`,
+      )
+      .join(', ');
+
+    await this.dataSource.query(
+      `
+      INSERT INTO attendance (id, student_id, schedule_id, date, status, check_in_time, confidence_score, justification_id)
+      VALUES ${insertValues}
+      `,
+    );
+
+    return { generated: missingRecords.length };
+  }
+
+  async createPreAbsences(
+    studentId: string,
+    dates: string[],
+  ): Promise<AttendanceEntity[]> {
+    const absences: AttendanceEntity[] = [];
+
+    for (const dateStr of dates) {
+      const date = new Date(dateStr);
+      const jsDay = date.getDay();
+      const dayOfWeek = jsDay === 0 ? 7 : jsDay;
+
+      // Find the student's schedule for this day
+      const schedule = await this.scheduleRepository
+        .createQueryBuilder('schedule')
+        .innerJoin('schedule.classroomCourseTeacher', 'cct')
+        .innerJoin(
+          'enrollments',
+          'enr',
+          'enr.classroom_course_teacher_id = cct.id',
+        )
+        .where('enr.student_id = :studentId', { studentId })
+        .andWhere('schedule.day_of_week = :dayOfWeek', { dayOfWeek })
+        .getOne();
+
+      const absence: any = {
+        studentId,
+        scheduleId: schedule?.id ?? null,
+        date,
+        status: AttendanceStatus.ABSENT,
+        checkInTime: null,
+        confidenceScore: 0,
+      };
+
+      absences.push(absence);
+    }
+
+    return await Promise.all(
+      absences.map((a) => this.attendanceRepository.save(a)),
+    );
   }
 }

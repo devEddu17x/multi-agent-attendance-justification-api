@@ -5,7 +5,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AttendanceEntity } from './attendance.entity';
 import { ParentEntity } from '../../parents/entities/parent.entity';
 import { JustificationStatus } from '../enums/justification-status.enum';
 
@@ -14,8 +13,8 @@ export class AttendanceJustificationEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'attendance_id', type: 'uuid' })
-  attendanceId: string;
+  @Column({ name: 'student_id', type: 'uuid' })
+  studentId: string;
 
   @Column({ name: 'parent_id', type: 'uuid' })
   parentId: string;
@@ -27,7 +26,7 @@ export class AttendanceJustificationEntity {
   reason: string;
 
   @Column({ name: 'evidences', type: 'jsonb', nullable: true })
-  evidences: { url: string; type: string; name: string }[] | null;
+  evidences: { key: string; type: string; name: string }[] | null;
 
   @Column({
     type: 'enum',
@@ -37,11 +36,7 @@ export class AttendanceJustificationEntity {
   status: JustificationStatus;
 
   @Column({ name: 'ai_metadata', type: 'jsonb' })
-  aiMetadata: any;
-
-  @ManyToOne(() => AttendanceEntity)
-  @JoinColumn({ name: 'attendance_id' })
-  attendance: AttendanceEntity;
+  aiMetadata: { verdict: string; reason: string };
 
   @ManyToOne(() => ParentEntity)
   @JoinColumn({ name: 'parent_id' })

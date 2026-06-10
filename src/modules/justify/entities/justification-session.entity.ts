@@ -38,6 +38,15 @@ export class JustificationSessionEntity {
   @Column({ name: 'final_verdict', type: 'jsonb', nullable: true })
   finalVerdict: Record<string, unknown> | null;
 
+  @Column({ name: 'extracted_data', type: 'jsonb', nullable: true })
+  extractedData: Record<string, unknown> | null;
+
+  @Column({ name: 'history_output', type: 'jsonb', nullable: true })
+  historyOutput: Record<string, unknown> | null;
+
+  @Column({ name: 'regulations_output', type: 'jsonb', nullable: true })
+  regulationsOutput: Record<string, unknown> | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

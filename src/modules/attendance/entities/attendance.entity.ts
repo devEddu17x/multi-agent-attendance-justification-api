@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { StudentEntity } from '../../students/entities/student.entity';
 import { ScheduleEntity } from '../../academic-classes/entities/schedule.entity';
+import { AttendanceJustificationEntity } from './attendance-justification.entity';
 import { AttendanceStatus } from '../enums/attendance-status.enum';
 
 @Entity('attendance')
@@ -21,6 +22,9 @@ export class AttendanceEntity {
 
   @Column({ name: 'schedule_id', type: 'uuid', nullable: true })
   scheduleId: string | null;
+
+  @Column({ name: 'justification_id', type: 'uuid', nullable: true })
+  justificationId: string | null;
 
   @Column({ type: 'date' })
   date: Date;
@@ -46,4 +50,8 @@ export class AttendanceEntity {
   @ManyToOne(() => ScheduleEntity)
   @JoinColumn({ name: 'schedule_id' })
   schedule: ScheduleEntity;
+
+  @ManyToOne(() => AttendanceJustificationEntity, { nullable: true })
+  @JoinColumn({ name: 'justification_id' })
+  justification: AttendanceJustificationEntity | null;
 }

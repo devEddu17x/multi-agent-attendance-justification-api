@@ -30,6 +30,7 @@ const envFilePath = paths[NODE_ENV] || paths.development;
         config.qdrantConfig,
         config.storageConfig,
         config.anthropicConfig,
+        config.googleEmbeddingsConfig,
       ],
     }),
     TypeOrmModule.forRootAsync({

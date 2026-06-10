@@ -1,4 +1,5 @@
 import { BaseMessage } from '@langchain/core/messages';
+import { AnthropicContentBlock } from './anthropic-content-block.interface';
 
 export interface AgentState {
   messages: BaseMessage[];
@@ -10,15 +11,6 @@ export interface AgentState {
   extractedData?: Record<string, unknown>;
   historyOutput?: Record<string, unknown>;
   regulationsOutput?: Record<string, unknown>;
+  finalVerdict?: Record<string, unknown>;
   finalResponse?: string;
-}
-
-export interface AnthropicContentBlock {
-  type: 'text' | 'image' | 'document';
-  text?: string;
-  source?: {
-    type: 'base64';
-    media_type: string;
-    data: string;
-  };
 }

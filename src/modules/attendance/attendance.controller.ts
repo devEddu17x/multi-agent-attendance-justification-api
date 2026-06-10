@@ -10,6 +10,7 @@ import {
   Get,
   UseGuards,
   ParseDatePipe,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AttendanceService } from './services/attendance.service';
@@ -88,5 +89,11 @@ export class AttendanceController {
       id,
       time,
     );
+  }
+
+  @Roles(ROLES.ADMIN)
+  @Post('generate-absences')
+  async generateAbsences(@Query('date') date: string) {
+    return await this.attendanceService.generateAbsences(date);
   }
 }

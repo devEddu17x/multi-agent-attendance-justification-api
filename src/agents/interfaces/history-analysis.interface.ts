@@ -1,9 +1,6 @@
 export interface HistoryAnalysis {
-  absenceCount: number;
-  lateCount: number;
-  excusedCount: number;
-  unjustifiedAbsenceCount: number;
-  maxConsecutiveAbsences: number;
+  available: boolean;
+  reason?: string;
   riskFlags: string[];
   patterns: string[];
   riskScore: number;
