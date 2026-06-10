@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, UseGuards, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import { JustifyChatService } from './services/justify-chat.service';
 import { JustifyStorageService } from './services/justify-storage.service';
@@ -17,6 +17,7 @@ import type { User } from 'src/common/interfaces/user.interface';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(ROLES.PARENT)
 export class JustifyController {
+  private readonly logger = new Logger(JustifyController.name);
   constructor(
     private readonly justifyChatService: JustifyChatService,
     private readonly justifyStorageService: JustifyStorageService,
@@ -35,13 +36,10 @@ export class JustifyController {
     res.setHeader('Connection', 'keep-alive');
 
     try {
-      await this.justifyChatService.handleChat(dto, res, user.sub);
+      await this.justifyChatService.handleChat(dto, res, user);
     } catch (error: any) {
-      const message =
-        error?.response?.message ||
-        error?.message ||
-        'Error processing request';
-      this.sse.emitError(res, message);
+      this.logger.error('Error handling chat', error);
+      this.sse.emitError(res, 'An error occurred');
     } finally {
       this.sse.close(res);
     }
