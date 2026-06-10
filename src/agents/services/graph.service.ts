@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateGraph, END, START, Annotation } from '@langchain/langgraph';
+import { IterableReadableStream } from '@langchain/core/utils/stream';
 import { OrchestratorAgentService } from './orchestrator-agent.service';
 import { CommunicatorAgentService } from './communicator-agent.service';
 import { ExtractorAgentService } from './extractor-agent.service';
@@ -100,6 +101,10 @@ export class GraphService {
 
   invoke(state: AgentState): Promise<Partial<AgentState>> {
     return this.compiledGraph.invoke(state);
+  }
+
+  stream(state: AgentState): Promise<IterableReadableStream<Partial<AgentState>>> {
+    return this.compiledGraph.stream(state, { streamMode: 'updates' });
   }
 
   private getFallbackForNode(nodeName: string): Partial<AgentState> {

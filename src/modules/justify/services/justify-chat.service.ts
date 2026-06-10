@@ -5,10 +5,12 @@ import { SessionManagerService } from './session-manager.service';
 import { StateBuilderService } from './state-builder.service';
 import { AttachmentProcessorService } from './attachment-processor.service';
 import { SseEventService } from './sse-event.service';
+import { ReasoningService } from './reasoning.service';
 import { GraphService } from '../../../agents/services/graph.service';
 import { StudentsService } from 'src/modules/students/students.service';
 import { User } from 'src/common/interfaces/user.interface';
 import { SessionStatus } from '../enums/session-status.enum';
+import { AgentState } from '../../../agents/interfaces/agent-state.interface';
 
 @Injectable()
 export class JustifyChatService {
@@ -21,6 +23,7 @@ export class JustifyChatService {
     private readonly graphService: GraphService,
     private readonly studentService: StudentsService,
     private readonly sse: SseEventService,
+    private readonly reasoningService: ReasoningService,
   ) {}
 
   async handleChat(dto: ChatMessageDTO, res: Response, user: User) {
@@ -74,9 +77,39 @@ export class JustifyChatService {
       `[CHAT] AgentState built: studentId=${state.studentId}, attachments=${state.attachments?.length || 0}, extractedData=${JSON.stringify(state.extractedData)}`,
     );
 
-    const result = await this.graphService.invoke(state);
+    const stream = await this.graphService.stream(state);
+    let accumulatedState: Partial<AgentState> = {};
+
+    for await (const chunk of stream) {
+      const [nodeName, partialState] = Object.entries(chunk)[0] as [
+        string,
+        Partial<AgentState>,
+      ];
+
+      accumulatedState = { ...accumulatedState, ...partialState };
+      this.logger.log(
+        `[CHAT] Stream chunk from ${nodeName}: keys=${Object.keys(partialState || {}).join(', ')}`,
+      );
+
+      const reasoning = this.reasoningService.generate(
+        nodeName,
+        { ...state, ...accumulatedState } as AgentState,
+        partialState,
+      );
+
+      if (reasoning) {
+        this.sse.emitReasoning(
+          res,
+          nodeName,
+          reasoning.message,
+          reasoning.details,
+        );
+      }
+    }
+
+    const result = accumulatedState as Partial<AgentState>;
     this.logger.log(
-      `[CHAT] Graph result: finalVerdict=${JSON.stringify(result.finalVerdict)}, finalResponse=${result.finalResponse?.substring(0, 100)}...`,
+      `[CHAT] Graph stream completed: finalVerdict=${JSON.stringify(result.finalVerdict)}, finalResponse=${result.finalResponse?.substring(0, 100)}...`,
     );
 
     const content =
