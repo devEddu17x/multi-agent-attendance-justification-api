@@ -106,4 +106,24 @@ export class SessionManagerService {
       order: { createdAt: 'ASC' },
     });
   }
+
+  async updateSessionStatus(
+    sessionId: string,
+    update: {
+      status: SessionStatus;
+      appliedArticle?: string | null;
+      requiredDocuments?: string[] | null;
+      finalVerdict?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    const session = await this.sessionRepo.findOne({
+      where: { id: sessionId },
+    });
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    Object.assign(session, update);
+    await this.sessionRepo.save(session);
+  }
 }
