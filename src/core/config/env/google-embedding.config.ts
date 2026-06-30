@@ -1,12 +1,19 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('googleEmbeddings', () => {
-  const { GOOGLE_EMBEEDINGS_MODEL_API_KEY, GOOGLE_EMBEEDINGS_MODEL } =
-    process.env;
+  const {
+    GOOGLE_EMBEDDINGS_MODEL_API_KEY,
+    GOOGLE_EMBEDDINGS_MODEL,
+    GOOGLE_EMBEEDINGS_MODEL_API_KEY,
+    GOOGLE_EMBEEDINGS_MODEL,
+  } = process.env;
+  const apiKey =
+    GOOGLE_EMBEDDINGS_MODEL_API_KEY ?? GOOGLE_EMBEEDINGS_MODEL_API_KEY;
+  const model = GOOGLE_EMBEDDINGS_MODEL ?? GOOGLE_EMBEEDINGS_MODEL;
 
   const missingVars = [
-    ['GOOGLE_EMBEEDINGS_MODEL_API_KEY', GOOGLE_EMBEEDINGS_MODEL_API_KEY],
-    ['GOOGLE_EMBEEDINGS_MODEL', GOOGLE_EMBEEDINGS_MODEL],
+    ['GOOGLE_EMBEDDINGS_MODEL_API_KEY', apiKey],
+    ['GOOGLE_EMBEDDINGS_MODEL', model],
   ]
     .filter(
       ([, value]) => typeof value !== 'string' || value.trim().length === 0,
@@ -20,7 +27,7 @@ export default registerAs('googleEmbeddings', () => {
   }
 
   return {
-    apiKey: GOOGLE_EMBEEDINGS_MODEL_API_KEY,
-    model: GOOGLE_EMBEEDINGS_MODEL,
+    apiKey,
+    model,
   };
 });
