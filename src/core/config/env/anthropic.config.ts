@@ -4,7 +4,7 @@ export default registerAs('anthropic', () => {
   const { ANTHROPIC_API_KEY, ANTHROPIC_MODEL, ANTHROPIC_BASE_URL } =
     process.env;
   const missingVars = [
-    ['ANTIROPIC_API_KEY', ANTHROPIC_API_KEY],
+    ['ANTHROPIC_API_KEY', ANTHROPIC_API_KEY],
     ['ANTHROPIC_MODEL', ANTHROPIC_MODEL],
     ['ANTHROPIC_BASE_URL', ANTHROPIC_BASE_URL],
   ]

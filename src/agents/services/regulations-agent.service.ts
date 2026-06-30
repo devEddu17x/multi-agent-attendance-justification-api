@@ -7,8 +7,15 @@ import { QdrantService } from '../../modules/qdrant/qdrant.service';
 import { AttendanceRulePayload } from '../../common/interfaces/attendance-rule.interface';
 import { REGULATIONS_SYSTEM_PROMPT } from '../prompts/regulations-system.prompt';
 import { QDRANT_COLLECTIONS } from '../constants/collections.constant';
-import { RegulationsAnalysis } from '../interfaces/regulations-analysis.interface';
 import { GeminiEmbeddingResponse } from '../interfaces/embedding-response.interface';
+import { PolicyEvaluation } from '../interfaces/justification-workflow.interface';
+import {
+  asBoolean,
+  asNumber,
+  asString,
+  asStringArray,
+  parseLlmJson,
+} from '../utils/llm-json.util';
 
 @Injectable()
 export class RegulationsAgentService {
@@ -91,16 +98,14 @@ export class RegulationsAgentService {
       new HumanMessage(humanContent),
     ]);
 
-    const analysis = JSON.parse(response.content as string) as Omit<
-      RegulationsAnalysis,
-      'available'
-    >;
+    const analysis = parseLlmJson(
+      response.content,
+      fallbackPolicyEvaluation('parse_failed'),
+      normalizePolicyEvaluation,
+    );
 
     return {
-      regulationsOutput: {
-        available: true,
-        ...analysis,
-      },
+      regulationsOutput: analysis,
     };
   }
 
@@ -109,9 +114,9 @@ export class RegulationsAgentService {
     const history = state.historyOutput ?? {};
 
     const parts = [
-      extracted.motivoAusencia,
-      extracted.tipoDocumento,
-      extracted.diagnostico,
+      extracted.reasonCategory ?? extracted.motivoAusencia,
+      extracted.documentType ?? extracted.tipoDocumento,
+      extracted.diagnosis ?? extracted.diagnostico,
       Array.isArray(history.patterns) ? history.patterns.join(', ') : undefined,
       Array.isArray(history.riskFlags)
         ? history.riskFlags.join(', ')
@@ -156,4 +161,106 @@ export class RegulationsAgentService {
 
     return values;
   }
+}
+
+function fallbackPolicyEvaluation(reason: string): PolicyEvaluation {
+  return {
+    available: false,
+    reason,
+    article: null,
+    score: 0,
+    requiredDocuments: [],
+    providedDocuments: [],
+    missingDocuments: [],
+    keyRulesSummary: [],
+    matchedRules: [],
+    expectedOutcome: 'needs_review',
+    compliant: false,
+    reasoning:
+      'No se pudo evaluar automaticamente el reglamento para este caso.',
+    confidence: 0,
+  };
+}
+
+function normalizePolicyEvaluation(value: unknown): PolicyEvaluation {
+  const data =
+    typeof value === 'object' && value !== null
+      ? (value as Record<string, unknown>)
+      : {};
+  const article = normalizeArticle(data.article);
+  const score = clamp(asNumber(data.score, 0));
+  const missingDocuments = asStringArray(data.missingDocuments);
+  const requiredDocuments = asStringArray(data.requiredDocuments);
+  const expectedOutcome = normalizeExpectedOutcome(data.expectedOutcome);
+
+  return {
+    available: true,
+    article,
+    score,
+    requiredDocuments,
+    providedDocuments: asStringArray(data.providedDocuments),
+    missingDocuments,
+    keyRulesSummary: asStringArray(data.keyRulesSummary),
+    matchedRules: normalizeMatchedRules(data.matchedRules),
+    expectedOutcome,
+    compliant: asBoolean(
+      data.compliant,
+      score >= 0.75 && missingDocuments.length === 0,
+    ),
+    reasoning: asString(data.reasoning, 'Reglamento evaluado.'),
+    confidence: clamp(asNumber(data.confidence, score)),
+  };
+}
+
+function normalizeArticle(value: unknown): PolicyEvaluation['article'] {
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+  const data = value as Record<string, unknown>;
+  const articleNumber = asString(data.articleNumber);
+  if (!articleNumber) {
+    return null;
+  }
+  return {
+    articleId: asNumber(data.articleId, 0),
+    articleNumber,
+    title: asString(data.title),
+    category: asString(data.category),
+  };
+}
+
+function normalizeMatchedRules(
+  value: unknown,
+): PolicyEvaluation['matchedRules'] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === 'object' && item !== null,
+    )
+    .map((item) => ({
+      articleNumber: asString(item.articleNumber),
+      title: asString(item.title),
+      score: clamp(asNumber(item.score, 0)),
+    }))
+    .filter((item) => item.articleNumber.length > 0);
+}
+
+function normalizeExpectedOutcome(
+  value: unknown,
+): PolicyEvaluation['expectedOutcome'] {
+  if (
+    value === 'likely_approved' ||
+    value === 'likely_rejected' ||
+    value === 'needs_review'
+  ) {
+    return value;
+  }
+  return 'needs_review';
+}
+
+function clamp(value: number): number {
+  return Math.max(0, Math.min(1, value));
 }

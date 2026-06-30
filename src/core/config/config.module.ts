@@ -31,6 +31,7 @@ const envFilePath = paths[NODE_ENV] || paths.development;
         config.storageConfig,
         config.anthropicConfig,
         config.googleEmbeddingsConfig,
+        config.langsmithConfig,
       ],
     }),
     TypeOrmModule.forRootAsync({

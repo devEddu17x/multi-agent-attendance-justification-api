@@ -341,7 +341,7 @@ export class AttendanceService {
     const justification = await this.justificationRepository.findOne({
       where: { id: justificationId },
     });
-    
+
     if (!justification) {
       return null;
     }
@@ -381,7 +381,11 @@ export class AttendanceService {
     studentId: string,
     dates?: string[],
   ): Promise<AttendanceEntity[]> {
-    return this.getRecordsByStudentAndDates(studentId, dates, AttendanceStatus.ABSENT);
+    return this.getRecordsByStudentAndDates(
+      studentId,
+      dates,
+      AttendanceStatus.ABSENT,
+    );
   }
 
   async getRecordsByStudentAndDates(
@@ -395,7 +399,7 @@ export class AttendanceService {
     }
 
     const all = await this.attendanceRepository.find({ where });
-    
+
     if (dates && dates.length > 0) {
       return all.filter((record) => {
         const recordDate = new Date(record.date).toISOString().split('T')[0];
@@ -405,7 +409,9 @@ export class AttendanceService {
       });
     }
 
-    return all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return all.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
   }
 
   async getJustificationsByStudentId(
@@ -489,9 +495,24 @@ export class AttendanceService {
     const absences: AttendanceEntity[] = [];
 
     for (const dateStr of dates) {
-      const date = new Date(dateStr);
-      const jsDay = date.getDay();
-      const dayOfWeek = jsDay === 0 ? 7 : jsDay;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        continue;
+      }
+
+      const existing = await this.getRecordsByStudentAndDates(studentId, [
+        dateStr,
+      ]);
+      if (existing.length > 0) {
+        continue;
+      }
+
+      const date = new Date(`${dateStr}T12:00:00Z`);
+      const utcDay = date.getUTCDay();
+      const dayOfWeek = utcDay === 0 ? 7 : utcDay;
+
+      if (dayOfWeek === 6 || dayOfWeek === 7) {
+        continue;
+      }
 
       // Find the student's schedule for this day
       const schedule = await this.scheduleRepository
@@ -506,10 +527,14 @@ export class AttendanceService {
         .andWhere('schedule.day_of_week = :dayOfWeek', { dayOfWeek })
         .getOne();
 
+      if (!schedule) {
+        continue;
+      }
+
       const absence: any = {
         studentId,
-        scheduleId: schedule?.id ?? null,
-        date,
+        scheduleId: schedule.id,
+        date: dateStr,
         status: AttendanceStatus.ABSENT,
         checkInTime: null,
         confidenceScore: 0,

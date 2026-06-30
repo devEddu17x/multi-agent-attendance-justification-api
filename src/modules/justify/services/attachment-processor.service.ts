@@ -42,7 +42,7 @@ export class AttachmentProcessorService {
         return null;
       }
 
-      return buildBlock(type, contentType, base64);
+      return buildBlock(type, contentType, base64, fileId);
     } catch (err) {
       this.logger.error(`Failed to process attachment ${fileId}`, err);
       return null;
@@ -69,9 +69,16 @@ function buildBlock(
   type: 'document' | 'image',
   contentType: string,
   base64: string,
+  fileId: string,
 ): AnthropicContentBlock {
   return {
     type,
+    metadata: {
+      key: fileId,
+      mediaType:
+        type === 'document' ? 'application/pdf' : contentType || 'image/jpeg',
+      name: fileId.split('/').pop() || fileId,
+    },
     source: {
       type: 'base64',
       media_type:
