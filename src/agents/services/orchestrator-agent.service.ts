@@ -19,7 +19,10 @@ export class OrchestratorAgentService {
     const hasHistoryOutput = state.historyOutput?.available === true;
     const hasRegulationsOutput = state.regulationsOutput?.available === true;
     const hasFinalVerdict = state.finalVerdict?.available === true;
+    const hasFinalVerdictError = state.finalVerdict?.error === 'api_error';
     const hasAttachments = (state.attachments?.length ?? 0) > 0;
+    const hasParseError = state.extractedData?.error === 'parse_failed';
+    const retryCount = (state.extractedData?.retryCount || 0) as number;
 
     this.logger.log(
       `[ORCHESTRATOR] State check: hasExtractedData=${hasExtractedData}, hasHistoryOutput=${hasHistoryOutput}, hasRegulationsOutput=${hasRegulationsOutput}, hasFinalVerdict=${hasFinalVerdict}, hasAttachments=${hasAttachments}`,
@@ -34,7 +37,7 @@ export class OrchestratorAgentService {
     // Force communicator if verdict already exists
     // Note: attachments are just inputs that were already processed by the extractor
     // If there are new attachments in a future message, StateBuilder will clear finalVerdict
-    if (hasFinalVerdict) {
+    if (hasFinalVerdict || hasFinalVerdictError) {
       this.logger.log('[ORCHESTRATOR] Forcing route to: communicator');
       return { nextAgent: 'communicator' };
     }
@@ -53,22 +56,26 @@ export class OrchestratorAgentService {
       return { nextAgent: 'extractor' };
     }
 
+    if (hasParseError && retryCount >= 1) {
+      this.logger.log(
+        '[ORCHESTRATOR] Extractor failed with parse error, skipping to history',
+      );
+      return { nextAgent: 'history' };
+    }
+
+    if (hasExtractedData && !hasHistoryOutput) {
+      this.logger.log(
+        '[ORCHESTRATOR] Forcing route to: history (extraction done)',
+      );
+      return { nextAgent: 'history' };
+    }
+
     // Force regulations if extracted and history done, but regulations not
     if (hasExtractedData && hasHistoryOutput && !hasRegulationsOutput) {
       this.logger.log(
         '[ORCHESTRATOR] Forcing route to: regulations (extracted + history done)',
       );
       return { nextAgent: 'regulations' };
-    }
-
-    // If extractor failed with parse error and already retried, skip to history
-    const hasParseError = state.extractedData?.error === 'parse_failed';
-    const retryCount = (state.extractedData?.retryCount || 0) as number;
-    if (hasParseError && retryCount >= 1) {
-      this.logger.log(
-        '[ORCHESTRATOR] Extractor failed with parse error, skipping to history',
-      );
-      return { nextAgent: 'history' };
     }
 
     // Use LLM only for ambiguous cases
