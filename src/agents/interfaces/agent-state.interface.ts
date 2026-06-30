@@ -1,5 +1,10 @@
 import { BaseMessage } from '@langchain/core/messages';
 import { AnthropicContentBlock } from './anthropic-content-block.interface';
+import {
+  ExtractedEvidence,
+  PolicyEvaluation,
+  TransactionalDecision,
+} from './justification-workflow.interface';
 
 export interface AgentState {
   messages: BaseMessage[];
@@ -8,9 +13,11 @@ export interface AgentState {
   studentId: string | undefined;
   attachments?: AnthropicContentBlock[];
   nextAgent?: string;
-  extractedData?: Record<string, unknown>;
+  extractedData?: ExtractedEvidence | Record<string, unknown>;
   historyOutput?: Record<string, unknown>;
-  regulationsOutput?: Record<string, unknown>;
-  finalVerdict?: Record<string, unknown>;
+  regulationsOutput?: PolicyEvaluation | Record<string, unknown>;
+  finalVerdict?:
+    | (TransactionalDecision & { available?: boolean })
+    | Record<string, unknown>;
   finalResponse?: string;
 }

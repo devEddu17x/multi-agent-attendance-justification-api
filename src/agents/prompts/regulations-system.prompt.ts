@@ -56,10 +56,14 @@ FORMATO DE RESPUESTA:
   },
   "score": number,
   "requiredDocuments": string[],
+  "providedDocuments": string[],
+  "missingDocuments": string[],
   "keyRulesSummary": string[],
   "matchedRules": [
     { "articleNumber": string, "title": string, "score": number }
   ],
   "expectedOutcome": "likely_approved" | "likely_rejected" | "needs_review",
-  "reasoning": string
+  "compliant": boolean,
+  "reasoning": string,
+  "confidence": number
 }`;
