@@ -31,21 +31,16 @@ export class StateBuilderService {
     blocks: AnthropicContentBlock[],
     studentId?: string,
   ): AgentState {
-    // If there are new attachments, clear extractedData and downstream outputs
-    // to force re-processing with the new evidence. HistoryOutput is kept
-    // because it doesn't change (it's just student attendance history).
-    const hasNewAttachments = blocks.length > 0;
-
     return {
       messages,
       sessionId: session.id,
       userId,
       studentId,
       attachments: blocks.length > 0 ? blocks : undefined,
-      extractedData: hasNewAttachments ? undefined : session.extractedData,
-      historyOutput: session.historyOutput, // Always keep - doesn't change
-      regulationsOutput: hasNewAttachments ? undefined : session.regulationsOutput,
-      finalVerdict: hasNewAttachments ? undefined : session.finalVerdict,
+      extractedData: undefined,
+      historyOutput: session.historyOutput,
+      regulationsOutput: undefined,
+      finalVerdict: undefined,
     };
   }
 }
