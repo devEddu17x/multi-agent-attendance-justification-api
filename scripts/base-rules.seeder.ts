@@ -74,11 +74,18 @@ async function main() {
     GOOGLE_EMBEEDINGS_MODEL_API_KEY,
   } = process.env;
   const COLLECTION_NAME = 'attendance_rules';
+  const qdrantUrl = new URL(QDRANT__SERVICE__URL!);
+  const qdrantPort = qdrantUrl.port
+    ? Number(qdrantUrl.port)
+    : qdrantUrl.protocol === 'https:'
+      ? 443
+      : 6333;
 
   const client = new QdrantClient({
-    url: QDRANT__SERVICE__URL,
+    host: qdrantUrl.hostname,
+    port: qdrantPort,
+    https: qdrantUrl.protocol === 'https:',
     apiKey: QDRANT__SERVICE__API_KEY,
-    https: false,
     checkCompatibility: false,
   });
 
@@ -150,7 +157,7 @@ async function main() {
 
     console.log('[Qdrant Seed] Completed successfully!');
   } catch (error: any) {
-    console.error('[Qdrant Seed] Failed:', error?.message || error);
+    console.error('[Qdrant Seed] Failed:', error);
     if (error?.data) {
       console.error(
         '[Qdrant Seed] Error details:',
