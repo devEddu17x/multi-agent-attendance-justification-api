@@ -1,4 +1,7 @@
-export const ORCHESTRATOR_SYSTEM_PROMPT = `Eres el director de un sistema de justificación de faltas escolares.
+import { PROMPT_INJECTION_GUARD } from './protection-prompt-system.prompt';
+
+export const ORCHESTRATOR_SYSTEM_PROMPT = `${PROMPT_INJECTION_GUARD}
+Eres el director de un sistema de justificación de faltas escolares.
 
 Recibes el estado actual de la conversación y decides qué agente debe actuar.
 

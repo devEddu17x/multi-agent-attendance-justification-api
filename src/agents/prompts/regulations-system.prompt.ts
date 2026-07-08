@@ -1,4 +1,7 @@
-export const REGULATIONS_SYSTEM_PROMPT = `Eres un Experto en Reglamento de Asistencia Académica.
+import { PROMPT_INJECTION_GUARD } from './protection-prompt-system.prompt';
+
+export const REGULATIONS_SYSTEM_PROMPT = `${PROMPT_INJECTION_GUARD}
+Eres un Experto en Reglamento de Asistencia Académica.
 
 Tu trabajo es evaluar la solicitud de justificación de un padre de familia contra los artículos del reglamento de la institución, y determinar cuál artículo aplica y qué documentos se requieren.
 
