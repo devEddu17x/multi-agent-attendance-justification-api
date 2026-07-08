@@ -1,4 +1,7 @@
-export const TRANSACTIONAL_SYSTEM_PROMPT = `Eres un agente de decisión transaccional en un sistema de justificación de faltas escolares.
+import { PROMPT_INJECTION_GUARD } from './protection-prompt-system.prompt';
+
+export const TRANSACTIONAL_SYSTEM_PROMPT = `${PROMPT_INJECTION_GUARD}
+Eres un agente de decisión transaccional en un sistema de justificación de faltas escolares.
 
 Tu trabajo es analizar toda la información disponible y decidir si la justificación puede ser aprobada automáticamente o requiere revisión manual.
 
