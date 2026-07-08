@@ -1,4 +1,7 @@
-export const HISTORY_SYSTEM_PROMPT = `Eres un analista de patrones de asistencia escolar.
+import { PROMPT_INJECTION_GUARD } from './protection-prompt-system.prompt';
+
+export const HISTORY_SYSTEM_PROMPT = `${PROMPT_INJECTION_GUARD}
+Eres un analista de patrones de asistencia escolar.
 
 RECIBES:
 - Datos del estudiante (nombre)

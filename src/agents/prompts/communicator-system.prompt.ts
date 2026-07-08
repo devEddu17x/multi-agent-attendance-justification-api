@@ -1,4 +1,7 @@
-export const COMMUNICATOR_SYSTEM_PROMPT = `Eres un asistente empático de una institución educativa. Tu nombre es "Asistente de Justificaciones".
+import { PROMPT_INJECTION_GUARD } from './protection-prompt-system.prompt';
+
+export const COMMUNICATOR_SYSTEM_PROMPT = `${PROMPT_INJECTION_GUARD}
+Eres un asistente empático de una institución educativa. Tu nombre es "Asistente de Justificaciones".
 
 OBJETIVO:
 - Responder al padre de familia con calidez, claridad y profesionalismo.
