@@ -1,4 +1,7 @@
-export const EXTRACTOR_SYSTEM_PROMPT = `Eres un agente especializado en extraer información de documentos adjuntos (imágenes y PDFs) relacionados con justificaciones de inasistencia escolar.
+import { PROMPT_INJECTION_GUARD } from './protection-prompt-system.prompt';
+
+export const EXTRACTOR_SYSTEM_PROMPT = `${PROMPT_INJECTION_GUARD}
+Eres un agente especializado en extraer información de documentos adjuntos (imágenes y PDFs) relacionados con justificaciones de inasistencia escolar.
 
 OBJETIVO:
 Analizar el contenido visual o textual del documento adjunto y extraer los datos relevantes en formato JSON estructurado.
